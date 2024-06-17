@@ -20,6 +20,7 @@ def excute_error_log(filename, action: Action, m, flag):
     for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, values_only=True):
         if row[0] is None:
             break
+        id =row[0]
         new_value = row[14]
         load_value = json.loads(new_value)
         load_value["req"]["remark"] = load_value["req"]["billNo"]
@@ -39,6 +40,10 @@ def excute_error_log(filename, action: Action, m, flag):
         # load_value = json.dumps(load_value)
         # 发送POST请求
         # load_value["skuList"] = action.excute_sku(skulist)
+        errorLogIdList=[]
+        errorLogIdList.append(id)
+        load_value["errorLogIdList"] = errorLogIdList
+        load_value["repairOpt"] = True
         load_value = action.excute_req(load_value)
         if flag == False:
             load_value = json.dumps(load_value)
@@ -97,6 +102,7 @@ def excute_occpy(filename, req_exam_str, action: Action, m, flag):
         req_exam["warehouseCode"] = warehouse_code
         idlist.append(id)
         req_exam["errorLogIdList"] = idlist
+        req_exam["repairOpt"] = True
         skuList = req_exam["skuList"]
         for sku in skuList:
             for prop in sku:
@@ -205,7 +211,8 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
         if warehouseName.startswith("FBA") or warehouseName.startswith("CG") or warehouseName.startswith("WFS"):
             continue
         dif_qty = int(row[5])
-        billNo = row[6]
+        if len(row) >6:
+            billNo = row[6]
         sku_exam["skuCode"] = skuCode
         sku_exam["oldSkuCode"] = oldSkuCode
         sku_exam["platform"] = platform
@@ -223,6 +230,8 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
         req_exam["billNo"] = billNo
         req_exam["originBillNo"] = billNo
         req_exam["remark"] = billNo
+        req_exam["repairOpt"] = True
+        req_exam["billTime"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         skustr = skuCode + oldSkuCode + warehouseCode
         # print(type(update_time))
         skuList = req_exam["skuList"]

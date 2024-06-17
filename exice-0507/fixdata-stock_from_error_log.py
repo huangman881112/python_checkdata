@@ -89,7 +89,6 @@ class OccpyFbaRClass:
     def __init__(self):
         super().__init__()
 
-
     def exeute_ro(self, skuList):
         for sku in skuList:
             sku["inTransitQty"] = 0
@@ -137,6 +136,8 @@ class OccpyRmaClass:
         return req_exam
 
 
+
+
 class PurchaseProducerClass:
     def __init__(self):
         super().__init__()
@@ -145,8 +146,37 @@ class PurchaseProducerClass:
         po = comutils.getPurchasePO(zpo)
         for sku in skulist:
             comutils.getPurchaseZpoDetail(po, sku["skuCode"])
+        return skulist
 
-        return
+
+    def execute_putaway_pur_with_no_occpy(self,skulist):
+        for sku in skulist:
+            qty = sku["holdQty"]
+            sku["useQty"] = qty*-1
+            sku["holdQty"] = 0
+            sku["totalQty"] = qty*-1
+        return skulist
+
+    def excute_req(self, req_exam):
+        skulist = req_exam["skuList"]
+        req_exam["operationTypeEnum"] = "NULL"
+        req_exam["skuList"] = self.execute_putaway_pur_with_no_occpy(skulist)
+        return req_exam
+
+
+class OtherOutboundClass:
+
+    def __init__(self):
+        super().__init__()
+
+    def execute_otherout(self, skuList):
+        return skuList
+
+    def execute_req(self, req_exam):
+        skulist = req_exam["skuList"]
+
+        req_exam["skuList"] = self.execute_otherout(skulist)
+        return req_exam
 
 
 class CommonClass:
@@ -157,6 +187,6 @@ class CommonClass:
         return req_exam
 
 
-wmsOccpy = OccpyFbaRClass()
+wmsOccpy = PurchaseProducerClass()
 result = excuteabc.excute_error_log(filename, wmsOccpy, 0, True)
 print(result)

@@ -76,5 +76,8 @@ class OccpyWmsClass:
         return req_exam
 
 
+
+
+
 wmsOccpy = OccpyWmsClass()
-excuteabcLog.excute_errorlog(filename, sales_order_out, wmsOccpy, 0, False)
+excuteabcLog.excute_errorlog(filename, None, wmsOccpy, 0, False)

@@ -6,7 +6,7 @@ from openpyxl import Workbook
 
 from openpyxl import load_workbook
 
-import commonUtil
+import commonUtil as comutils
 
 import excute_abstract as excuteabstract
 
@@ -97,6 +97,10 @@ class OccpyWmsClass:
 
 
 class BadQtyClass:
+
+    REQ_EXAM = None
+
+
     def __init__(self):
         super().__init__()
 
@@ -122,7 +126,7 @@ class BadQtyClass:
 
 class headTransClass:
 
-    REQ_EXAM = commonUtil.HEAD_SHIPMENT
+    REQ_EXAM = comutils.HEAD_SHIPMENT
 
     def __init__(self):
         super().__init__()
@@ -148,6 +152,30 @@ class headTransClass:
         # req_exam["operationTypeEnum"] = "NULL"
         return req_exam
 
-wmsOccpy = headTransClass()
-resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.REQ_EXAM, wmsOccpy, 0, True)
+
+
+class PurchaseTransitClass:
+    req_exam = comutils.PURCHASE_PRODUCE_TRANSIT
+
+    def __init__(self):
+        super().__init__()
+
+    def excute_pur_transit_sku(self, skuList):
+        for sku in skuList:
+            qty = int(sku["inTransitQty"])
+            sku["inTransitQty"] = qty
+        return skuList
+
+    def execute_req(self, req_exam):
+        billNo = req_exam["billNo"]
+        req_exam["originBillNo"] = billNo
+        skuList = req_exam["skuList"]
+        req_exam["skuList"] = self.excute_pur_transit_sku(skuList)
+
+        return req_exam
+
+
+
+wmsOccpy = PurchaseTransitClass()
+resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.req_exam, wmsOccpy, 0, True)
 print(resut)

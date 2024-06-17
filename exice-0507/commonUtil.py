@@ -83,21 +83,122 @@ def getPurchaseZpoDetail(po, skuCode):
 
 DATA = "data"
 LIST = "list"
+RECORDS = "records"
 STOCK_URL = "stock_url"
 STOCK_LOG_URL = "stock_log_url"
+
 HEAD_LIST_URL = "head_list_url"
 HEAD_LIST_PARA_BODY = "head_list_para_body"
 HEAD_DETAIL_URL = "head_detail_url"
 HEAD_SUPPLYSTRAIGHT_LIST_URL = "head_supplyStraight_list_url"
+HEAD_SUPPLYSTRAIGHT_LIST_PARA_BODY="head_supplyStraight_list_para_body"
+HEAD_SUPPLYSTRAIGHT_LIST_ALL_URL="head_supplyStraight_list_all_url"
+HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY = "head_supplyStraight_list_all_para_body"
+HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_STATUS = "status"
+HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_PAGESIZE = "pageSize"
+HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_CURRENTPAGE = "currentPage"
+
 ORDER_URL = "order_url"
+
+
+
+HEAD_DEPOTRESERVATION_LIST_URL="head_depotReservation_list_url"
+HEAD_DEPOTRESERVATION_PARA_BODY="head_depotReservation_para_body"
+HEAD_DEPOTRESERVATION_PARA_BODY_COMPLETESTATUS = "completeStatus"
+
+
 PURCHASE_ZPO_LIST_URL = "purchase_list_url"
 PURCHASE_ZPO_LIST_PARA_BODY = "purchase_list_para_body"
 PURCHASE_ZPO_LIST_PARA_BODY_ZPOID = "zpoId"
+PURCHASE_ZPO_LIST_PARA_BODY_SKUCODE = "cinvCode"
+
 
 PURCHASE_DETAIL_URL = "purchase_detail_url"
 PURCHASE_DETAIL_PARA_BODY = "purchase_detail_para_body"
 PURCHASE_DETAIL_PARA_BODY_POID = "poId"
 PURCHASE_DETAIL_PARA_BODY_CINVCODELIST = "cinvCodeList"
+
+
+WMS_STORAGE_INV_URL="wms_storage_inv_url"
+WMS_STORAGE_INV_PARA_BODY = "wms_storage_inv_para_body"
+WHCODE="whCode"
+SKUCODE="skuCode"
+
+
+
+INV_OCCPY_URL="inv_occpy_url"
+INV_OCCPY_PARA_BODY="inv_occpy_para_body"
+WAREHOUSECODE = "whCode"
+OLD_SKU_CODE = "oldSkuCode"
+
+
+INV_OCCPY_BIZTYPELIST = "bizTypeList"
+PUR_PRODUCE_IN_TRANSIT="PUR_PRODUCE_IN_TRANSIT"
+PUR_IN_TRANSIT="PUR_IN_TRANSIT"
+
+
+
+storelist = """
+{"FBA-25-EU":"11366",
+"FBA-25-UK":"11367",
+"FBA-01":"10333",
+"FBA-02":"10334",
+"FBA-03":"10335",
+"FBA-04":"10336",
+"FBA-05":"10337",
+"FBA-06":"10338",
+"FBA-07":"10339",
+"FBA-08":"10340",
+"FBA-04-CA":"10341",
+"eBay":"10415",
+"FBA-09":"10417",
+"FBA-10":"10418",
+"FBA-11":"10440",
+"FBA-12":"10441",
+"FBA-13":"10442",
+"FBA-14":"10443",
+"FBA-15":"10468",
+"FBA-16":"10469",
+"FBA-17":"10470",
+"FBA-18":"10471",
+"FBA-19":"10479",
+"FBA-20":"10506",
+"FBA-21":"10537",
+"FBA-22-UK":"10887",
+"WFS-01":"10906",
+"FBA-22-EU":"11104",
+"FBA-01-DI":"11131",
+"CG-01":"11154",
+"FBA-01-UK-DI":"11349",
+"FBA-01-EU-DI":"11350",
+"FBA-26-UK":"11351",
+"FBA-26-EU":"11352",
+"FBA-27-UK":"11823",
+"FBA-27-EU":"11824"
+
+
+}
+
+"""
+
+def getstorelist():
+    storelist_json = json.loads(storelist)
+    return storelist_json
+
+
+platformlist = """
+{
+"Amazon":"10002",
+"ebay":"10001"
+}
+
+"""
+
+
+def getplatformlist():
+    storelist_json = json.loads(platformlist)
+    return storelist_json
+
 
 
 def getApiList():
@@ -210,7 +311,7 @@ OTHER_OUTBOUND = """
 }
 """
 
-HEAD_TRANS_OUT = """
+HEAD_TRANS_SHIPOUT = """
 {
 	"operationTypeEnum": "SHIP_HOLD",
 	"skuList": [
@@ -270,6 +371,34 @@ HEAD_SHIPMENT = """
 }
 
 """
+
+SALES_ORDER_JIE_DAN = """
+{
+	"billNo": "GOC65167864",
+	"billStatusEnum": "FINISH",
+	"billTime": "2024-05-31T12:00:06.912",
+	"billTypeEnum": "SALE_OUTBOUND_ORDERS",
+	"operationTypeEnum": "HOLD",
+	"originBillNo": "GOC65167864",
+	"skuList": [
+		{
+			"badHoldQty": 0,
+			"badQty": 0,
+			"freezeQty": 0,
+			"holdQty": -1,
+			"inTransitQty": 0,
+			"oldSkuCode": "OETETA-0016",
+			"platform": "10001",
+			"skuCode": "OETETA-0016",
+			"store": "10415",
+			"totalQty": 0,
+			"useQty": 1
+		}
+	],
+	"warehouseCode": "18"
+}
+"""
+
 
 SALES_ORDER_OUT = """
 {
@@ -345,4 +474,34 @@ PURCHASE_PRODUCE_TRANSIT = """
 	],
 	"warehouseCode": "01"
 }
+"""
+
+
+PURCHASE_RECEIVE_TRANSIT = """ 
+{
+	"billNo": "2406H-G142-GA02",
+	"billStatusEnum": "FINISH",
+	"billTime": "2024-06-14T13:19:00.329",
+	"billTypeEnum": "TMS_STRAIGHT_WAREHOUSRE",
+	"operationTypeEnum": "PUR_RECEIVE_IN_TRANSIT",
+	"originBillNo": "2406H-G142-GA02",
+	"repairOpt": false,
+	"skuList": [
+		{
+			"badHoldQty": 0,
+			"badQty": 0,
+			"freezeQty": 0,
+			"holdQty": 0,
+			"inTransitQty": -100,
+			"oldSkuCode": "BFTLPT-2011",
+			"platform": "10001",
+			"skuCode": "BFTLPT-2011",
+			"store": "10415",
+			"totalQty": 0,
+			"useQty": 0
+		}
+	],
+	"warehouseCode": "01"
+}
+
 """

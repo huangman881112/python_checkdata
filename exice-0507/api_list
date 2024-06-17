@@ -2,19 +2,27 @@
 "head_list_url": "https://www.yintaerp.com/yinta-tms/headController/getHeadPageList",
 "head_list_para_body": {"currentPage": 1, "pageSize": 10, "shipmentPlanId": "2404H-S53-GA02"},
 "head_detail_url":"https://www.yintaerp.com/yinta-tms/headController/listHeadDetail?cInvCode=&shipmentPlanId=",
+"head_supplyStraight_list_all_url":"https://www.yintaerp.com/yinta-tms/supplyStraightPreDeclare/findByPage",
+"head_supplyStraight_list_all_para_body":{"currentPage":1,"pageSize":100,"threeCategoryList":[],"planNo":"","status":1},
 "head_supplyStraight_list_url":"https://www.yintaerp.com/yinta-tms/supplyStraightPreDeclare/getMainInfo",
 "head_supplyStraight_list_para_body": {"planNo": "2405H-S11-CA03"},
+"head_depotReservation_list_url":"https://www.yintaerp.com/yinta-tms/depotReservationListWebController/depotReservationListPage",
+"head_depotReservation_para_body":{"currentPage":1,"pageSize":10,"completeStatus":0,"reservationIdList":[],"cinvCode":"","purchaseID":"","reservationID":""},
+
+
 "purchase_list_url":"https://www.yintaerp.com/yinta-purchase/front/purchaseOrderMain/findByPage",
 "purchase_list_para_body":{"cpoId":"","purchasePlanRepId":"","purchasePlanAjustId":"","purchasePlanId":"","zpoId":"","cvenCode":"","cpersonCode":"","placeOnFileCode":"","cinvCode":"","cinvCCodeFirst":"","cinvCCodeSecond":"","cinvCCodeThird":"","cstate":1,"diCode":"","processInstanceStatuses":[],"businessId":"","downOrderStartTime":"","downOrderEndTime":"","pageNum":1,"pageSize":100},
 "purchase_detail_url":"https://www.yintaerp.com/yinta-purchase/front/purchaseOrderMain/queryPoDetailByPage",
 "purchase_detail_para_body":{"cvenCode":"","poId":"","pageNum":1,"pageSize":10,"platform":"","store":"","cinvCodeList":[]},
-"head_depotReservation_list_url":"https://www.yintaerp.com/yinta-tms/depotReservationListWebController/depotReservationListPage",
-"head_depotReservation_para_body":{"currentPage":1,"pageSize":10,"reservationIdList":[],"cinvCode":"","purchaseID":"","reservationID":"R20240514162555022"},
+
 "stock_log_url":"https://inv-web.yintaerp.com/api/inv/invWarehouseRatio/executeLogicStockLog",
 "stock_url":"https://inv-web.yintaerp.com/api/inv/invWarehouseRatio/executeLogicStock",
 "order_url":"https://www.yintaerp.com/yinta-business-web/frontend/goc/listByPage",
 "order_para_body":{"startSysCreateTime":"2024-04-08 00:00:00","endSysCreateTime":"","noType":"ERP单号","no":"","buyerInfoType":"买家ID","shippingAmazonWarehouseList":[],"skuList":[],"total":1,"pageSize":10,"pageNum":1,"tabType":1,"orderStatus":99},
 "inv_occpy_url":"https://inv-web.yintaerp.com/api/inv/invLogicOrderOccupy/pageByBizType",
-"inv_occpy_para_body":{"bizTypeList":["PUR_PRODUCE_IN_TRANSIT"],"platform":"10001","oldSkuCode":"FTLFSC-6023","skuCode":"FTLFSC-6023","whCode":"01","store":"10415","current":1,"size":10}
-
+"inv_occpy_para_body":{"bizTypeList":[],"platform":"10001","oldSkuCode":"","skuCode":"","whCode":"","store":"10415","current":1,"size":10},
+"inv_stock_url":"https://inv-web.yintaerp.com/api/inv/invLogicStock/queryInvLogicStockPage",
+"inv_stock_para_body":{"skuCode":"FTBFSD-0147","warehouseCode":"112","current":1,"size":10},
+"wms_storage_inv_url":"https://wms-web.yintaerp.com/wms-web/wh/storageInv/list",
+"wms_storage_inv_para_body":{"isInvQty":true,"oneCategory":"","twoCategory":"","threeCategory":"","storageLocation":"","skuCode":"","whCode":"","boxNumFlag":"","weightFlag":"","ouId":"","storageArea":"","companyIdList":[],"storageTypeList":[],"lastCategoryList":[],"platformCode":"","storeCode":"","current":1,"size":10,"sortMappings":{"column":"","sortFlag":""}}
 }

@@ -20,6 +20,9 @@ def excute_errorlog(filename, head_trans_out, action: Action, m, flag):
     for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, values_only=True):
         if row[0] is None:
             break
+        id = row[0]
+        errorLogIdList =[]
+        errorLogIdList.append(id)
         new_value = row[14]
         skuCode = row[4]
         oldSkuCode = row[5]
@@ -48,6 +51,8 @@ def excute_errorlog(filename, head_trans_out, action: Action, m, flag):
             newskuList.append(sku_exam)
         # 发送POST请求
         load_value["skuList"] = newskuList
+        load_value["errorLogIdList"] = errorLogIdList
+        load_value["repairOpt"] = True
         load_value = action.execute_log_req(load_value)
         if flag == False:
             load_value = json.dumps(load_value)
