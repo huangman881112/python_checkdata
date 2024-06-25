@@ -98,7 +98,7 @@ class OccpyWmsClass:
 
 class BadQtyClass:
 
-    REQ_EXAM = None
+    req_exam = None
 
 
     def __init__(self):
@@ -126,7 +126,7 @@ class BadQtyClass:
 
 class headTransClass:
 
-    REQ_EXAM = comutils.HEAD_SHIPMENT
+    req_exam = comutils.HEAD_SHIPMENT
 
     def __init__(self):
         super().__init__()
@@ -176,6 +176,37 @@ class PurchaseTransitClass:
 
 
 
-wmsOccpy = PurchaseTransitClass()
+
+
+class otherInboundClass:
+
+    req_exam = None
+
+    def __init__(self):
+        super().__init__()
+
+
+    def execute_sku(self, skuList):
+        for sku in skuList:
+            qty = sku["totalQty"]
+            sku["useQty"] = qty
+            sku["totalQty"] = qty
+            sku["holdQty"] = 0
+        return skuList
+
+
+    def execute_req(self, req_exam):
+        # print(req_exam["billNo"])
+        # org_bill = req_exam["billNo"]
+        # bills = comutils.getBillList()
+        # if org_bill not in bills:
+        #     return None
+        skulist = req_exam["skuList"]
+        req_exam["skuList"] = self.execute_sku(skulist)
+        # req_exam["operationTypeEnum"] = "NULL"
+        return req_exam
+
+
+wmsOccpy = otherInboundClass()
 resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.req_exam, wmsOccpy, 0, True)
 print(resut)

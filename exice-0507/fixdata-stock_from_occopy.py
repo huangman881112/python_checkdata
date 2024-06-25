@@ -64,7 +64,7 @@ class OccpyWmsClass:
         for sku in skuList:
             qty = int(sku["holdQty"])
             sku["holdQty"] = qty * -1
-            sku["usedQty"] = qty * 1
+            sku["useQty"] = qty * 1
             sku["totalQty"] = 0
         return skuList
 
@@ -81,6 +81,7 @@ class OccpyWmsClass:
         #     req_exam=None
         #     return
         result = comutils.getSalesOrders(req_exam["originBillNo"])
+        result["orderStatus"] = -1
         skuList = req_exam["skuList"]
         if 'orderStatus' in result and result["orderStatus"] == 2:
             billNo = result["warehouseOrderId"]
@@ -89,6 +90,7 @@ class OccpyWmsClass:
             req_exam["skuList"] = self.excute_2_sku(skuList)
         elif 'orderStatus' in result and result["orderStatus"] == -1:
             req_exam["skuList"] = self.excute__1_sku(skuList)
+            req_exam["billTypeEnum"] = "SALE_OUTBOUND_ORDERS"
         else:
             print(req_exam)
             req_exam = None
@@ -210,6 +212,6 @@ class PuchaseReceiveTransitClass:
         return req_exam
 
 
-wmsOccpy =PuchaseReceiveTransitClass()
+wmsOccpy =OccpyWmsClass()
 result = excuteabc.excute_occpy(filename, wmsOccpy.req_exam, wmsOccpy, 0, False)
 print(result)

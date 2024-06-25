@@ -8,6 +8,9 @@ from openpyxl import load_workbook
 
 import pandas as pd
 
+import commonUtil as cu
+
+
 import requests
 import json
 
@@ -59,7 +62,7 @@ warehouse_codes = """{"01": "上海集散仓", "2": "头程海运虚拟仓", "3"
 "120": "谷仓德国1号仓不良品仓","121": "FBA-27-UK","122": "FBA-27-EU","123": "谷仓德国7号仓良品仓","124": "谷仓德国7号仓不良品仓"}"""
 
 warehouse_codes = json.loads(warehouse_codes)
-filename = "d:\\tmp\\sku_dif\\执行结果0611-1_total_dif.xlsx"
+filename = "d:\\tmp\\sku_dif\\执行结果0624-实物vs逻辑库存.xlsx"
 tmpfile = "d:\\tmp\\tmp.txt"
 
 # content = ''
@@ -73,61 +76,75 @@ tmpfile = "d:\\tmp\\tmp.txt"
 # df = pd.read_excel(filename)
 i = 0
 # 加载现有的Excel文件
-workbook = load_workbook(filename)
+
+def convert_to_csv(filename,type,warehouse_code):
+    # 选择工作表
+    workbook = load_workbook(filename)
+    sheet = workbook.active
+    i = 0
+    for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row, values_only=True):
+        i = i + 1
+        if row[0] is None:
+            break
+
+        if i == 1:
+            sheet.cell(1, len(row) + 1, "sku_code")
+            sheet.cell(1, len(row) + 2, "old_sku_code")
+            sheet.cell(1, len(row) + 3, "warehouse_name")
+            sheet.cell(1, len(row) + 4, "warehouse_code")
+            sheet.cell(1, len(row) + 5, "platform")
+            sheet.cell(1, len(row) + 6, "store")
+            sheet.cell(1, len(row) + 7, "dif_sku")
+            sheet.cell(1, len(row) + 8, "99_occpy")
+            sheet.cell(1, len(row) + 9, "wms_storage_inv")
+        else:
+            new_value = row[2]
+            str_list = new_value[19:].split(',')
+            logic_qty = int(row[3])
+            ordes_qty = int(row[4])
+            sku_code = str_list[0]
+            sku_dif = logic_qty - ordes_qty
+            sheet.cell(i, len(row) + 1, str_list[0])
+            sheet.cell(i, len(row) + 2, str_list[1])
+            if warehouse_code != str_list[2]:
+                continue
+            if str_list[2] in warehouse_codes:
+                sheet.cell(i, len(row) + 3, warehouse_codes[str_list[2]])
+                sheet.cell(i, len(row) + 4, str_list[2])
+                if type == "实物":
+                    skustock = cu.getInvstockbySku(sku_code, str_list[2])
+                    sheet.cell(i, len(row) + 5, skustock["platform"])
+                    sheet.cell(i, len(row) + 6, skustock["store"])
+                    sheet.cell(i, len(row) + 8, skustock["holdQty"])
+                    wmsstorageinv = cu.getWmsStoregeStock(sku_code, str_list[2],"int")
+                    sheet.cell(i, len(row) + 9, wmsstorageinv)
+            sheet.cell(i, len(row) + 7, sku_dif)
+        # row[2]=str_list[0]
+
+        # load_value = json.loads(new_value)
+        # load_value["req"]["remark"] = load_value["req"]["billNo"]
+        # tm = load_value["req"]["billTime"]
+        # print(tm)
+        # tm = time.localtime(tm/1000)
+        #
+        # tm = time.strftime('%Y-%m-%d %H:%M:%S', tm)
+        # load_value["req"]["billTime"]= tm
+        # print(load_value)
+        # load_value = json.dumps(load_value)
+        # 发送POST请求
+        # response = requests.post(url, json=load_value, headers=headers)
+        # print(response.text)
+        # 检查响应状态码
+        # if response.status_code == 200:
+        #     print("请求成功")
+        #     # 处理响应数据，这里以JSON为例
+        #     response_data = response.json()
+        #     print(response_data)
+        # else:
+        #     print(f"请求失败，状态码：{response.status_code}")
+    f_tm = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    print(i)
+    workbook.save(f_tm +'_'+warehouse_code+ '_skudif.xlsx')
 
 
-
-# 选择工作表
-sheet = workbook.active
-i = 0
-for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row, values_only=True):
-    i = i + 1
-    if row[0] is None:
-        break
-
-    if i == 1:
-        sheet.cell(1, len(row) + 1, "sku_code")
-        sheet.cell(1, len(row) + 2, "old_sku_code")
-        sheet.cell(1, len(row) + 3, "warehouse_name")
-        sheet.cell(1, len(row) + 4, "warehouse_code")
-        sheet.cell(1, len(row) + 5, "dif_sku")
-        sheet.cell(1, len(row) + 6, "99_occpy")
-    else:
-        new_value = row[2]
-        str_list = new_value[19:].split(',')
-        logic_qty = int(row[3])
-        ordes_qty = int(row[4])
-        sku_code = str_list[0]
-        sku_dif = logic_qty - ordes_qty
-        sheet.cell(i, len(row) + 1, str_list[0])
-        sheet.cell(i, len(row) + 2, str_list[1])
-        if str_list[2] in warehouse_codes:
-            sheet.cell(i, len(row) + 3, warehouse_codes[str_list[2]])
-            sheet.cell(i, len(row) + 4, str_list[2])
-        sheet.cell(i, len(row) + 5, sku_dif)
-    # row[2]=str_list[0]
-
-    # load_value = json.loads(new_value)
-    # load_value["req"]["remark"] = load_value["req"]["billNo"]
-    # tm = load_value["req"]["billTime"]
-    # print(tm)
-    # tm = time.localtime(tm/1000)
-    #
-    # tm = time.strftime('%Y-%m-%d %H:%M:%S', tm)
-    # load_value["req"]["billTime"]= tm
-    # print(load_value)
-    # load_value = json.dumps(load_value)
-    # 发送POST请求
-    # response = requests.post(url, json=load_value, headers=headers)
-    # print(response.text)
-    # 检查响应状态码
-    # if response.status_code == 200:
-    #     print("请求成功")
-    #     # 处理响应数据，这里以JSON为例
-    #     response_data = response.json()
-    #     print(response_data)
-    # else:
-    #     print(f"请求失败，状态码：{response.status_code}")
-f_tm = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-print(i)
-workbook.save(f_tm + '_skudif.xlsx')
+convert_to_csv(filename,"实物","61")

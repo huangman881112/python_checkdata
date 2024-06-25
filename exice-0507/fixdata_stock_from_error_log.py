@@ -84,6 +84,33 @@ class OccpyWmsClass:
         return req_exam
 
 
+
+class OccpyQcZHClass:
+
+    def __init__(self):
+        super().__init__()
+
+    def exeute_qc_zh_with_nobad(self, skuList):
+        for sku in skuList:
+            sku["badQty"] = 0
+            sku["totalQty"] = sku["holdQty"]
+        return skuList
+
+    def excute_req(self, req_exam):
+        billno = req_exam["billNo"]
+        # BillList = comutils.getBillList()
+        # if req_exam["originBillNo"] not in BillList:
+        #     req_exam=None
+        #     return
+
+        skuList = req_exam["skuList"]
+        if billno.startswith("ZH"):
+            req_exam["skuList"] = self.exeute_qc_zh_with_nobad(skuList)
+        return req_exam
+
+
+
+
 class OccpyFbaRClass:
 
     def __init__(self):
@@ -96,13 +123,8 @@ class OccpyFbaRClass:
 
     def excute_req(self, req_exam):
         billno = req_exam["billNo"]
-        # BillList = comutils.getBillList()
-        # if req_exam["originBillNo"] not in BillList:
-        #     req_exam=None
-        #     return
-
-        skuList = req_exam["skuList"]
         if billno.startswith("RO"):
+            skuList = req_exam["skuList"]
             req_exam["operationTypeEnum"] = "PUTAWAY"
             req_exam["skuList"] = self.exeute_ro(skuList)
         return req_exam
@@ -119,7 +141,10 @@ class OccpyRmaClass:
                 continue
             sku = json.dumps(sku)
             sku_exam = comutils.init_data(sku, None)
-            sku_exam["totalQty"] = sku_exam["holdQty"]
+            if sku_exam["holdQty"] > 0 :
+                sku_exam["totalQty"] = sku_exam["holdQty"]
+            elif sku_exam["badHoldQty"] > 0 :
+                sku_exam["totalQty"] = sku_exam["badHoldQty"]
             newskulist.append(sku_exam)
         return newskulist
 
@@ -138,7 +163,7 @@ class OccpyRmaClass:
 
 
 
-class PurchaseProducerClass:
+class PurchaseputawayClass:
     def __init__(self):
         super().__init__()
 
@@ -158,9 +183,26 @@ class PurchaseProducerClass:
         return skulist
 
     def excute_req(self, req_exam):
-        skulist = req_exam["skuList"]
-        req_exam["operationTypeEnum"] = "NULL"
-        req_exam["skuList"] = self.execute_putaway_pur_with_no_occpy(skulist)
+        billno = req_exam["billNo"]
+        skuCode = req_exam["skuList"][0]["skuCode"]
+        oldSkuCode = req_exam["skuList"][0]["oldSkuCode"]
+        whCode = req_exam["warehouseCode"]
+
+
+        if billno.startswith("PAP") :
+            bizType = "GOOD_PUTAWAY_HOLD"
+            billnolist = comutils.getOccpyBySku(skuCode,oldSkuCode,whCode,bizType)
+            print(billnolist)
+            billexist = False
+            for bill in billnolist:
+                if "billNo" in bill and bill["billNo"] == req_exam["originBillNo"]:
+                    billexist = True
+            if billexist == False:
+                skulist = req_exam["skuList"]
+                req_exam["operationTypeEnum"] = "NULL"
+                req_exam["skuList"] = self.execute_putaway_pur_with_no_occpy(skulist)
+            else:
+                return req_exam
         return req_exam
 
 
@@ -183,10 +225,31 @@ class CommonClass:
     def __init__(self):
         super().__init__()
 
+
+
+    def getActionByType(self,billtype):
+        print(billtype)
+        if billtype == "215":
+            tmp = OccpyFbaRClass()
+            return tmp
+        elif billtype == "212" or billtype == "216":
+            return PurchaseputawayClass()
+        elif billtype == "219":
+            return OccpyRmaClass()
+        elif billtype == "404":
+            return OccpyQcZHClass()
+        else:
+            return CommonClass()
+
+
+
     def excute_req(self, req_exam):
         return req_exam
 
 
-wmsOccpy = PurchaseProducerClass()
-result = excuteabc.excute_error_log(filename, wmsOccpy, 0, True)
+
+
+
+wmsOccpy = CommonClass()
+result = excuteabc.excute_error_log(filename, wmsOccpy,0, True)
 print(result)

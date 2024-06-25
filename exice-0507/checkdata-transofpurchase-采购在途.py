@@ -19,7 +19,7 @@ zpoNo = ""
 # skuCode = "FTPLPB-0292"
 bill_nolist = []
 skuList  =[]
-sku_str= """FTBFVT-4007"""
+sku_str= """FTKDRH-2004"""
 # skuList.append(skuCode)
 bill_nolist.append(zpoNo)
 

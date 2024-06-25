@@ -91,50 +91,167 @@ HEAD_LIST_URL = "head_list_url"
 HEAD_LIST_PARA_BODY = "head_list_para_body"
 HEAD_DETAIL_URL = "head_detail_url"
 HEAD_SUPPLYSTRAIGHT_LIST_URL = "head_supplyStraight_list_url"
-HEAD_SUPPLYSTRAIGHT_LIST_PARA_BODY="head_supplyStraight_list_para_body"
-HEAD_SUPPLYSTRAIGHT_LIST_ALL_URL="head_supplyStraight_list_all_url"
+HEAD_SUPPLYSTRAIGHT_LIST_PARA_BODY = "head_supplyStraight_list_para_body"
+HEAD_SUPPLYSTRAIGHT_LIST_ALL_URL = "head_supplyStraight_list_all_url"
 HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY = "head_supplyStraight_list_all_para_body"
 HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_STATUS = "status"
+HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_CINVCODE = "cinvCode"
 HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_PAGESIZE = "pageSize"
 HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_CURRENTPAGE = "currentPage"
 
+HEAD_SUPPLYSTRAIGHT_DETAIL_URL = "head_supplyStraight_detail_url"
+HEAD_SUPPLYSTRAIGHT_DETAIL_PARA_BODY = "head_supplyStraight_detail_para_body"
+HEAD_SUPPLYSTRAIGHT_DETAIL_PARA_BODY_PLANNO = "planNo"
+
 ORDER_URL = "order_url"
 
-
-
-HEAD_DEPOTRESERVATION_LIST_URL="head_depotReservation_list_url"
-HEAD_DEPOTRESERVATION_PARA_BODY="head_depotReservation_para_body"
+HEAD_DEPOTRESERVATION_LIST_URL = "head_depotReservation_list_url"
+HEAD_DEPOTRESERVATION_PARA_BODY = "head_depotReservation_para_body"
 HEAD_DEPOTRESERVATION_PARA_BODY_COMPLETESTATUS = "completeStatus"
-
 
 PURCHASE_ZPO_LIST_URL = "purchase_list_url"
 PURCHASE_ZPO_LIST_PARA_BODY = "purchase_list_para_body"
 PURCHASE_ZPO_LIST_PARA_BODY_ZPOID = "zpoId"
 PURCHASE_ZPO_LIST_PARA_BODY_SKUCODE = "cinvCode"
 
-
 PURCHASE_DETAIL_URL = "purchase_detail_url"
 PURCHASE_DETAIL_PARA_BODY = "purchase_detail_para_body"
 PURCHASE_DETAIL_PARA_BODY_POID = "poId"
 PURCHASE_DETAIL_PARA_BODY_CINVCODELIST = "cinvCodeList"
 
-
-WMS_STORAGE_INV_URL="wms_storage_inv_url"
+WMS_STORAGE_INV_URL = "wms_storage_inv_url"
 WMS_STORAGE_INV_PARA_BODY = "wms_storage_inv_para_body"
-WHCODE="whCode"
-SKUCODE="skuCode"
+WHCODE = "whCode"
+SKUCODE = "skuCode"
 
-
-
-INV_OCCPY_URL="inv_occpy_url"
-INV_OCCPY_PARA_BODY="inv_occpy_para_body"
+INV_OCCPY_URL = "inv_occpy_url"
+INV_OCCPY_PARA_BODY = "inv_occpy_para_body"
 WAREHOUSECODE = "whCode"
 OLD_SKU_CODE = "oldSkuCode"
 
+INV_STOCK_QUERY_URL = "inv_stock_query_url"
+INV_STOCK_QUERY_PARA_BODY = "inv_stock_query_para_body"
 
 INV_OCCPY_BIZTYPELIST = "bizTypeList"
-PUR_PRODUCE_IN_TRANSIT="PUR_PRODUCE_IN_TRANSIT"
-PUR_IN_TRANSIT="PUR_IN_TRANSIT"
+PUR_PRODUCE_IN_TRANSIT = "PUR_PRODUCE_IN_TRANSIT"
+PUR_IN_TRANSIT = "PUR_IN_TRANSIT"
+
+
+def getBillLists(url, body, startPage, pageSize, status, bill_list, skuCode):
+    print(url)
+    suplr_strt_para_body = getApiList()[body]
+    if HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_STATUS in suplr_strt_para_body:
+        suplr_strt_para_body[HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_STATUS] = status
+    elif HEAD_DEPOTRESERVATION_PARA_BODY_COMPLETESTATUS in suplr_strt_para_body:
+        suplr_strt_para_body[HEAD_DEPOTRESERVATION_PARA_BODY_COMPLETESTATUS] = status
+    suplr_strt_para_body[HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_PAGESIZE] = pageSize
+    suplr_strt_para_body[HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_CURRENTPAGE] = startPage
+    if skuCode is not None:
+        suplr_strt_para_body[HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_CINVCODE] = skuCode
+    suplr_strt_response = requests.post(getApiList()[url],
+                                        json=suplr_strt_para_body, headers=getHeaders())
+    suplr_strt_res = json.loads(suplr_strt_response.text)
+    # print(suplr_strt_res[commutils.DATA])
+    for record in suplr_strt_res[DATA][RECORDS]:
+        if "planNo" in record:
+            bill_list.append(record["planNo"])
+        elif "reservationID" in record:
+            bill_list.append(record["reservationID"])
+    startPage += 1
+    while suplr_strt_res[DATA]["total"] > (startPage - 1) * pageSize:
+        print(startPage)
+        return getBillLists(url, body, startPage, pageSize, status, bill_list)
+
+    return bill_list
+
+
+def getbilllistswithprop(url: object, body: object, bill_list: object, skuCode: object = None) -> object:
+    """
+
+    :param url:
+    :param body:
+    :param bill_list:
+    :param skuCode:
+    :return:
+    """
+    startPage = body["current"]
+    pageSize = body["size"]
+    if skuCode is not None:
+        body[HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_CINVCODE] = skuCode
+    suplr_strt_response = requests.post(url,
+                                        json=body, headers=getHeaders())
+    suplr_strt_res = json.loads(suplr_strt_response.text)
+    # print(suplr_strt_res[commutils.DATA])
+    for record in suplr_strt_res[DATA][RECORDS]:
+        if skuCode is not None and skuCode in record:
+            if type(bill_list) == int:
+                bill_list += record[skuCode]
+            elif type(bill_list) == list:
+                bill_list.append(record[skuCode])
+        else:
+            bill_list.append(record)
+    startPage += 1
+    while suplr_strt_res[DATA]["total"] > (startPage - 1) * pageSize:
+        print(startPage)
+        body["current"] = startPage
+        return getbilllistswithprop(url, body, bill_list, skuCode)
+
+    return bill_list
+
+
+def getAllbilllist(skuCode, status, billlist):
+    for status in status:
+        billlist = getBillLists(HEAD_SUPPLYSTRAIGHT_LIST_ALL_URL, HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY,
+                                1, 100, status, billlist, skuCode)
+        billlist = getBillLists(HEAD_DEPOTRESERVATION_LIST_URL, HEAD_DEPOTRESERVATION_PARA_BODY,
+                                1, 100, status, billlist, skuCode)
+
+    return billlist
+
+
+def getWmsStoregeStock(skucCode, warehouseCode, type):
+    url = getApiList(WMS_STORAGE_INV_URL)
+    body = getApiList(WMS_STORAGE_INV_PARA_BODY)
+    body[SKUCODE] = skucCode
+    body[WHCODE] = warehouseCode
+    if type == "int":
+        res = getbilllistswithprop(url, body, 0, "invQty")
+    else:
+        res = getbilllistswithprop(url, body, [], None)
+    print(skucCode, "_", res)
+    return res
+
+
+def getInvstockbySku(skucode, whcode):
+    body = getApiList()[INV_STOCK_QUERY_PARA_BODY]
+    body["skuCode"] = skucode
+    body["warehouseCode"] = whcode
+    response = requests.post(getApiList()[INV_STOCK_QUERY_URL], json=body, headers=getHeaders())
+    # print(response.text)
+    resultj = json.loads(response.text)
+    if resultj["code"] == 200 and len(resultj["data"]["records"]) > 0:
+        return resultj["data"]["records"][0]
+    return resultj
+
+
+
+
+
+
+def getOccpyBySku(skuCode,oldSkuCode, whcode,biztype):
+    body = getApiList()[INV_OCCPY_PARA_BODY]
+    body["skuCode"] = skuCode
+    body["oldSkuCode"] = oldSkuCode
+    body["whCode"] = whcode
+    bizTypeList = []
+    bizTypeList.append(biztype)
+    body["bizTypeList"] = bizTypeList
+    response = requests.post(getApiList()[INV_OCCPY_URL], json=body, headers=getHeaders())
+    # print(response.text)
+    resultj = json.loads(response.text)
+    if resultj["code"] == 200 and len(resultj["data"]["records"]) > 0:
+        return resultj["data"]["records"]
+    return resultj
 
 
 
@@ -181,6 +298,7 @@ storelist = """
 
 """
 
+
 def getstorelist():
     storelist_json = json.loads(storelist)
     return storelist_json
@@ -200,8 +318,7 @@ def getplatformlist():
     return storelist_json
 
 
-
-def getApiList():
+def getApiList(para_str=None):
     apiList = ''
     with open('api_list', 'r', encoding='utf-8') as file:
         # content = file.read()  # 一次性读取整个文件内容
@@ -209,6 +326,8 @@ def getApiList():
         for line in file:
             apiList += line
     apiList = json.loads(apiList)
+    if para_str is not None:
+        return apiList[para_str]
     return apiList
 
 
@@ -255,6 +374,8 @@ OPERTYPE = """
 def getOperType():
     opertype = json.loads(OPERTYPE)
     return opertype
+
+
 FILE_PROFIX = "D:/file/python_result/"
 
 OTHER_INBOUND = """
@@ -399,7 +520,6 @@ SALES_ORDER_JIE_DAN = """
 }
 """
 
-
 SALES_ORDER_OUT = """
 {
 	"billNo": "AF24053100527",
@@ -475,7 +595,6 @@ PURCHASE_PRODUCE_TRANSIT = """
 	"warehouseCode": "01"
 }
 """
-
 
 PURCHASE_RECEIVE_TRANSIT = """ 
 {

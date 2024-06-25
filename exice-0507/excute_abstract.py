@@ -11,6 +11,9 @@ import commonUtil as comutils
 import Action
 
 
+
+
+
 def excute_error_log(filename, action: Action, m, flag):
     workbook = load_workbook(filename)
     po_zip_list = {}
@@ -21,6 +24,7 @@ def excute_error_log(filename, action: Action, m, flag):
         if row[0] is None:
             break
         id =row[0]
+        billType = row[1]
         new_value = row[14]
         load_value = json.loads(new_value)
         load_value["req"]["remark"] = load_value["req"]["billNo"]
@@ -33,18 +37,15 @@ def excute_error_log(filename, action: Action, m, flag):
         load_value["req"]["billTime"] = tm
         # load_value["req"]["operationTypeEnum"]="NULL"
         load_value = load_value["req"]
-        skulist = load_value["skuList"]
-        # for sku in skulist:
-        #     sku["holdQty"] = 0
-        #     sku["totalQty"] = sku["useQty"]
-        # load_value = json.dumps(load_value)
-        # 发送POST请求
-        # load_value["skuList"] = action.excute_sku(skulist)
+
+        action_new = action.getActionByType(billType)
+        if action_new is None:
+            continue
         errorLogIdList=[]
         errorLogIdList.append(id)
         load_value["errorLogIdList"] = errorLogIdList
         load_value["repairOpt"] = True
-        load_value = action.excute_req(load_value)
+        load_value = action_new.excute_req(load_value)
         if flag == False:
             load_value = json.dumps(load_value)
             print(load_value)
@@ -82,8 +83,12 @@ def excute_occpy(filename, req_exam_str, action: Action, m, flag):
         sku_exam["oldSkuCode"] = oldSkuCode
         sku_exam["platform"] = platform
         sku_exam["store"] = store
-        billNo = row[18]
-        origin_bill_no = row[17]
+        if row[18] != "":
+            billNo = row[18]
+            origin_bill_no = row[17]
+        else:
+            billNo = row[3]
+            origin_bill_no =  row[3]
         bill_time = row[15]
         warehouse_code = row[6]
         qty = int(row[11])
@@ -192,6 +197,7 @@ def execute_skudif(filename, action: Action, m, flag):
 
 
 def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
+    req_str=""
     workbook = load_workbook(filename)
     billNo = ''
     i = 0
@@ -210,7 +216,7 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
         # print(warehouseName)
         if warehouseName.startswith("FBA") or warehouseName.startswith("CG") or warehouseName.startswith("WFS"):
             continue
-        dif_qty = int(row[5])
+        dif_qty = int(row[5])*-1
         if len(row) >6:
             billNo = row[6]
         sku_exam["skuCode"] = skuCode
@@ -222,10 +228,10 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
             billNo = gentime + "_fix_dif_stock"
         if req_exam_str is None:
             if dif_qty > 0:
-                req_exam_str = comutils.OTHER_INBOUND
+                req_str = comutils.OTHER_INBOUND
             else:
-                req_exam_str = comutils.OTHER_OUTBOUND
-        req_exam = comutils.init_data(req_exam_str, None)
+                req_str = comutils.OTHER_OUTBOUND
+        req_exam = comutils.init_data(req_str, None)
         req_exam["warehouseCode"] = warehouseCode
         req_exam["billNo"] = billNo
         req_exam["originBillNo"] = billNo

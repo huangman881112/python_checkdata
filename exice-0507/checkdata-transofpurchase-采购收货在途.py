@@ -13,91 +13,66 @@ import json
 biz_type_list = []
 
 
-def getBillLists(url, body, startPage, pageSize, status, bill_list):
-    print(url)
-    suplr_strt_para_body = commutils.getApiList()[body]
-    if commutils.HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_STATUS in suplr_strt_para_body:
-        suplr_strt_para_body[commutils.HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_STATUS] = status
-    elif commutils.HEAD_DEPOTRESERVATION_PARA_BODY_COMPLETESTATUS in suplr_strt_para_body:
-        suplr_strt_para_body[commutils.HEAD_DEPOTRESERVATION_PARA_BODY_COMPLETESTATUS] = status
-    suplr_strt_para_body[commutils.HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_PAGESIZE] = pageSize
-    suplr_strt_para_body[commutils.HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY_CURRENTPAGE] = startPage
-    suplr_strt_response = requests.post(commutils.getApiList()[url],
-                                        json=suplr_strt_para_body, headers=commutils.getHeaders())
-    suplr_strt_res = json.loads(suplr_strt_response.text)
-    # print(suplr_strt_res[commutils.DATA])
-    for record in suplr_strt_res[commutils.DATA][commutils.RECORDS]:
-        if "planNo" in record:
-            bill_list.append(record["planNo"])
-        elif "reservationID" in record:
-            bill_list.append(record["reservationID"])
-    startPage += 1
-    while suplr_strt_res[commutils.DATA]["total"] > (startPage - 1) * pageSize:
-        print(startPage)
-        return getBillLists(url,body,startPage, pageSize, status, bill_list)
-
-    return bill_list
 
 
-bill_nolist = getBillLists(commutils.HEAD_SUPPLYSTRAIGHT_LIST_ALL_URL, commutils.HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY,
-                           1, 100, 1, [])
-bill_nolist = getBillLists(commutils.HEAD_SUPPLYSTRAIGHT_LIST_ALL_URL, commutils.HEAD_SUPPLYSTRAIGHT_LIST_ALL_PARA_BODY,
-                           1, 100, 0, bill_nolist)
-bill_nolist = getBillLists(commutils.HEAD_DEPOTRESERVATION_LIST_URL, commutils.HEAD_DEPOTRESERVATION_PARA_BODY,
-                           1, 100, 0, bill_nolist)
-bill_nolist = getBillLists(commutils.HEAD_DEPOTRESERVATION_LIST_URL, commutils.HEAD_DEPOTRESERVATION_PARA_BODY,
-                           1, 100, 1, bill_nolist)
+
+# billno_list = getAllbilllist("FTLFTS-6043",[0,1],[])
+billno_list = {"2406H-S42-CA03":2138}
+print(billno_list)
 
 
-print(len(bill_nolist))
 
+# bill_nolist=[]
+# bill_nolist.append("ZPO24040200531")
 result = ''
-with open('checkdata-transofpurchase-采购收货在途.txt', 'w', encoding='utf-8') as filewr:
-    for bill_no in bill_nolist:
-        inv_param_body = commutils.getApiList()[commutils.INV_OCCPY_PARA_BODY]
+def getAllresByZpo(billno_list):
+    with open('checkdata-transofpurchase-采购收货在途.txt', 'w', encoding='utf-8') as filewr:
+        for bill_no in billno_list:
+            # inv_param_body = commutils.getApiList()[commutils.INV_OCCPY_PARA_BODY]
 
-        requests.post(commutils.getApiList()[commutils.INV_OCCPY_URL], json=param_body,
-                                     headers=commutils.getHeaders())
-        qty = int(bill_nolist[bill_no])
-        # print(qty)
-        if bill_no.startswith("24"):
-            param_body = commutils.getApiList()[commutils.HEAD_SUPPLYSTRAIGHT_LIST_PARA_BODY]
-            param_body["planNo"] = bill_no
-            response = requests.post(commutils.getApiList()[commutils.HEAD_SUPPLYSTRAIGHT_LIST_URL], json=param_body,
-                                     headers=commutils.getHeaders())
-        else:
-            param_body = commutils.getApiList()[commutils.HEAD_DEPOTRESERVATION_PARA_BODY]
-            param_body["reservationID"] = bill_no
-            response = requests.post(commutils.getApiList()[commutils.HEAD_DEPOTRESERVATION_LIST_URL], json=param_body,
-                                     headers=commutils.getHeaders())
-        print(response.text)
-        time.sleep(0.5)
-        response_data = json.loads(response.text)
-        response_records = response_data["data"]
-        #直发查询
-        if 'status' in response_records:
-            if response_records["status"] in [0, 1] and 'countQty' in response_records and response_records[
-                "countQty"] == qty:
-                print(bill_no)
+            # requests.post(commutils.getApiList()[commutils.INV_OCCPY_URL], json=param_body,
+            #                              headers=commutils.getHeaders())
+            qty = int(billno_list[bill_no])
+            # print(qty)
+            if bill_no.startswith("24"):
+                param_body = commutils.getApiList()[commutils.HEAD_SUPPLYSTRAIGHT_LIST_PARA_BODY]
+                param_body["planNo"] = bill_no
+                response = requests.post(commutils.getApiList()[commutils.HEAD_SUPPLYSTRAIGHT_LIST_URL], json=param_body,
+                                         headers=commutils.getHeaders())
             else:
-                bill_str = bill_no + "," + (str(qty) + "\n")
-                filewr.write(bill_str)
-            continue
-        #预约进仓查询
-        elif 'records' in response_records and len(response_records["records"]) > 0:
-            if response_records["records"][0]["completeStatus"] in [0, 1] and response_records["records"][0][
-                "totalDeliveryQty"] == qty:
-                print(bill_no)
-            else:
-                bill_str = bill_no + "," + (str(qty) + "\n")
-                filewr.write(bill_str)
-            continue
-        bill_str = bill_no + "," + (str(qty) + "\n")
-        print(bill_str)
-        filewr.write(bill_str)
-        rec_str = json.dumps(response_records)
-        # print(bill_no,qty)
+                param_body = commutils.getApiList()[commutils.HEAD_DEPOTRESERVATION_PARA_BODY]
+                param_body["reservationID"] = bill_no
+                response = requests.post(commutils.getApiList()[commutils.HEAD_DEPOTRESERVATION_LIST_URL], json=param_body,
+                                         headers=commutils.getHeaders())
+            print(response.text)
+            time.sleep(0.5)
+            response_data = json.loads(response.text)
+            response_records = response_data["data"]
+            #直发查询
+            if 'status' in response_records:
+                if response_records["status"] in [0, 1] and 'countQty' in response_records and response_records["countQty"] == qty:
+                    print(bill_no)
+                else:
+                    bill_str = bill_no + "," + (str(qty) + "\n")
+                    filewr.write(bill_str)
+                continue
+            #预约进仓查询
+            elif 'records' in response_records and len(response_records["records"]) > 0:
+                if response_records["records"][0]["completeStatus"] in [0, 1] and response_records["records"][0][
+                    "totalDeliveryQty"] == qty:
+                    print(bill_no)
+                else:
+                    bill_str = bill_no + "," + (str(qty) + "\n")
+                    filewr.write(bill_str)
+                continue
+            bill_str = bill_no + "," + (str(qty) + "\n")
+            print(bill_str)
+            filewr.write(bill_str)
+            rec_str = json.dumps(response_records)
+            # print(bill_no,qty)
 
+
+getAllresByZpo(billno_list)
 # 目标URL
 url = ''
 
