@@ -208,5 +208,5 @@ class otherInboundClass:
 
 
 wmsOccpy = otherInboundClass()
-resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.req_exam, wmsOccpy, 0, True)
+resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.req_exam, wmsOccpy, 2, False)
 print(resut)

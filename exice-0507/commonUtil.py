@@ -29,9 +29,10 @@ def getHeaders():
     return headers
 
 
-def init_data(rma_exampl, ignored_data):
+def init_data(rma_exampl, ignored_data,type=None):
     result = {}
-    rma_exampl = json.loads(rma_exampl)
+    if type is None or type == "str":
+        rma_exampl = json.loads(rma_exampl)
     for data_pro in rma_exampl:
         if data_pro is not None and data_pro == ignored_data:
             continue
@@ -378,6 +379,26 @@ def getOperType():
 
 FILE_PROFIX = "D:/file/python_result/"
 
+
+
+SKU_EXAM_STR = """
+{
+			"badHoldQty": 0,
+			"badQty": 0,
+			"freezeQty": 0,
+			"holdQty": 0,
+			"inTransitQty": 0,
+			"oldSkuCode": "FTPLPB-0183",
+			"platform": "10001",
+			"site":"US",
+			"skuCode": "FTPLPB-0183",
+			"store": "10415",
+			"totalQty": 1,
+			"useQty": 1
+		}
+"""
+
+
 OTHER_INBOUND = """
 {
 	"billNo": "RD24060414077",
@@ -395,6 +416,7 @@ OTHER_INBOUND = """
 			"inTransitQty": 0,
 			"oldSkuCode": "FTPLPB-0183",
 			"platform": "10001",
+			"site":"US",
 			"skuCode": "FTPLPB-0183",
 			"store": "10415",
 			"totalQty": 1,
@@ -422,6 +444,7 @@ OTHER_OUTBOUND = """
 			"inTransitQty": 0,
 			"oldSkuCode": "HEFTVT-P025",
 			"platform": "10001",
+			"site":"US",
 			"skuCode": "HEFTVT-P025",
 			"store": "10415",
 			"totalQty": -1,
@@ -444,6 +467,7 @@ HEAD_TRANS_SHIPOUT = """
 			"inTransitQty": 0,
 			"store": "10415",
 			"platform": "10001",
+			"site":"US",
 			"badQty": 0,
 			"oldSkuCode": "FTHKAM-1002",
 			"skuCode": "FTHKAM-1002",
@@ -480,6 +504,7 @@ HEAD_SHIPMENT = """
 			"inTransitQty": 89,
 			"oldSkuCode": "FTOFOD-6034",
 			"platform": "10001",
+			"site":"US",
 			"skuCode": "FTOFOD-6034",
 			"store": "10415",
 			"totalQty": 0,
@@ -510,6 +535,7 @@ SALES_ORDER_JIE_DAN = """
 			"inTransitQty": 0,
 			"oldSkuCode": "OETETA-0016",
 			"platform": "10001",
+			"site":"US",
 			"skuCode": "OETETA-0016",
 			"store": "10415",
 			"totalQty": 0,
@@ -537,6 +563,7 @@ SALES_ORDER_OUT = """
 			"inTransitQty": 0,
 			"oldSkuCode": "OETETA-0016",
 			"platform": "10002",
+			"site":"US",
 			"skuCode": "OETETA-0016",
 			"store": "10339",
 			"totalQty": -1,
@@ -586,6 +613,7 @@ PURCHASE_PRODUCE_TRANSIT = """
 			"inTransitQty": 8,
 			"oldSkuCode": "CETCTC-6035",
 			"platform": "10001",
+			"site":"US",
 			"skuCode": "CETCTC-6035",
 			"store": "10415",
 			"totalQty": 0,
@@ -614,6 +642,7 @@ PURCHASE_RECEIVE_TRANSIT = """
 			"inTransitQty": -100,
 			"oldSkuCode": "BFTLPT-2011",
 			"platform": "10001",
+			"site":"US",
 			"skuCode": "BFTLPT-2011",
 			"store": "10415",
 			"totalQty": 0,

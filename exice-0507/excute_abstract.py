@@ -79,16 +79,19 @@ def excute_occpy(filename, req_exam_str, action: Action, m, flag):
         oldSkuCode = row[10]
         platform = row[7]
         store = row[8]
+        site = row[11]
         sku_exam["skuCode"] = skuCode
         sku_exam["oldSkuCode"] = oldSkuCode
         sku_exam["platform"] = platform
         sku_exam["store"] = store
+        if site is not None and site != "":
+            sku_exam["site"] = site
         if row[18] != "":
             billNo = row[18]
             origin_bill_no = row[17]
         else:
             billNo = row[3]
-            origin_bill_no =  row[3]
+            origin_bill_no = row[3]
         bill_time = row[15]
         warehouse_code = row[6]
         qty = int(row[11])
@@ -117,7 +120,10 @@ def excute_occpy(filename, req_exam_str, action: Action, m, flag):
                     sku[prop] = qty
                 else:
                     sku[prop] = sku_exam[prop]
-
+            if site == "None":
+                skuList.remove(sku)
+                sku = comutils.init_data(sku, "site", "json")
+                skuList.append(sku)
         # 发送POST请求
         # req_exam["skuList"] = action.excute_sku(skuList)
         req_exam = action.excute_req(req_exam)
@@ -147,6 +153,7 @@ def execute_skudif(filename, action: Action, m, flag):
         oldSkuCode = row[8]
         warehouseCode = row[10]
         warehouseName = str(row[9])
+        site = str(row[11])
         # print(warehouseName)
         if warehouseName.startswith("FBA") or warehouseName.startswith("CG") or warehouseName.startswith("WFS"):
             continue
@@ -155,6 +162,7 @@ def execute_skudif(filename, action: Action, m, flag):
         dif_qty = int(row[11])
         sku_exam["skuCode"] = skuCode
         sku_exam["oldSkuCode"] = oldSkuCode
+        sku_exam["site"] = site
         gentime = datetime.now().strftime('%Y%m%d')
         billNo = gentime + "_fix_dif_stock"
         if dif_qty > 0:
@@ -179,7 +187,10 @@ def execute_skudif(filename, action: Action, m, flag):
                     sku[prop] = dif_qty
                 elif prop in sku_exam:
                     sku[prop] = sku_exam[prop]
-
+            if site == "None":
+                skuList.remove(sku)
+                sku = comutils.init_data(sku,"site","json")
+                skuList.append(sku)
         # print(billTime)
         # 发送POST请求
         req_exam = action.execute_req(req_exam)
@@ -212,17 +223,20 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
         platform = row[2]
         store = row[3]
         warehouseCode = str(row[4])
+        site = str(row[5])
         warehouseName = comutils.getwarehouse_list()[warehouseCode]
         # print(warehouseName)
         if warehouseName.startswith("FBA") or warehouseName.startswith("CG") or warehouseName.startswith("WFS"):
             continue
-        dif_qty = int(row[5])*-1
-        if len(row) >6:
-            billNo = row[6]
+        dif_qty = int(row[6])*-1
+        if len(row) >7:
+            billNo = row[7]
         sku_exam["skuCode"] = skuCode
         sku_exam["oldSkuCode"] = oldSkuCode
         sku_exam["platform"] = platform
         sku_exam["store"] = store
+        if site != "":
+            sku_exam["site"] = site
         gentime = datetime.now().strftime('%Y%m%d')
         if billNo is None or billNo == '':
             billNo = gentime + "_fix_dif_stock"
@@ -249,6 +263,10 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
                     sku[prop] = dif_qty
                 elif prop in sku_exam:
                     sku[prop] = sku_exam[prop]
+            if site == "None":
+                skuList.remove(sku)
+                sku = comutils.init_data(sku,"site","json")
+                skuList.append(sku)
         # print(billTime)
         # 发送POST请求
         req_exam = action.execute_req(req_exam)

@@ -213,5 +213,5 @@ class PuchaseReceiveTransitClass:
 
 
 wmsOccpy =OccpyWmsClass()
-result = excuteabc.excute_occpy(filename, wmsOccpy.req_exam, wmsOccpy, 0, False)
+result = excuteabc.excute_occpy(filename, wmsOccpy.req_exam, wmsOccpy, 0, True)
 print(result)
