@@ -69,6 +69,10 @@ class OccpyWmsClass:
         # if req_exam["originBillNo"] not in BillList:
         #     req_exam=None
         #     return
+        order_occupy = comutils.getOccpyByOrder(req_exam["originBillNo"],None,"GOOD_OUT_HOLD")
+        print("order_occupy",len(order_occupy))
+        if order_occupy is not None and len(order_occupy)>0:
+            return req_exam
         result = comutils.getSalesOrders(req_exam["originBillNo"])
         skuList = req_exam["skuList"]
         if 'orderStatus' in result and result["orderStatus"] == 2:
@@ -83,6 +87,54 @@ class OccpyWmsClass:
             req_exam = None
         return req_exam
 
+
+class OccpySalesOrderClass:
+    def __init__(self):
+        super().__init__()
+
+    def excute_2_sku(self, skuList):
+        for sku in skuList:
+            qty = int(sku["holdQty"])
+            sku["holdQty"] = qty * -1
+            sku["totalQty"] = qty * -1
+        return skuList
+
+    def excute__1_sku(self, skuList):
+        for sku in skuList:
+            qty = int(sku["holdQty"])
+            sku["holdQty"] = qty * -1
+            sku["usedQty"] = qty * 1
+            sku["totalQty"] = 0
+        return skuList
+
+    def excute_sku(self, skuList):
+        # for sku in skuList:
+        #     qty = int(sku["holdQty"])
+        #     sku["holdQty"] = qty * -1
+        #     sku["totalQty"] = qty * -1
+        return skuList
+
+    def excute_req(self, req_exam):
+        # BillList = comutils.getBillList()
+        # if req_exam["originBillNo"] not in BillList:
+        #     req_exam=None
+        #     return
+        sku_use_stock = 0
+        inv_res = comutils.getInvstockbySku(req_exam["skuList"][0]["skuCode"], req_exam["warehouseCode"])
+        order_hold_qty = req_exam["skuList"][0]["holdQty"]
+        if inv_res is not None and len(inv_res) > 0:
+            for skuStock in inv_res:
+                sku_use_stock += skuStock["useQty"]
+            # print(sku_use_stock)
+        result = comutils.getOccpyByOrder(req_exam["billNo"], None,"GOOD_OUT_HOLD")
+        print("result", len(result), "sku_use_stock", sku_use_stock, "billNo", req_exam["billNo"], "order_hold_qty",
+              order_hold_qty)
+        if sku_use_stock <= 0 or (len(result) > 0):
+            req_exam = None
+        # else:
+        #     # print(sku_use_stock)
+
+        return req_exam
 
 
 class OccpyQcZHClass:
@@ -154,7 +206,10 @@ class OccpyRmaClass:
         # if req_exam["originBillNo"] not in BillList:
         #     req_exam=None
         #     return
-
+        order_occupy = comutils.getOccpyByOrder(req_exam["originBillNo"],None,"GOOD_PUTAWAY_HOLD")
+        print("order_occupy",len(order_occupy))
+        if order_occupy is not None and len(order_occupy) >0:
+            return req_exam
         skuList = req_exam["skuList"]
         if billno.startswith("QC"):
             req_exam["skuList"] = self.execute_qc(skuList)
@@ -186,13 +241,13 @@ class PurchaseputawayClass:
         billno = req_exam["billNo"]
         skuCode = req_exam["skuList"][0]["skuCode"]
         oldSkuCode = req_exam["skuList"][0]["oldSkuCode"]
+        platform = req_exam["skuList"][0]["platform"]
+        store = req_exam["skuList"][0]["store"]
         whCode = req_exam["warehouseCode"]
-
-
-        if billno.startswith("PAP") :
-            bizType = "GOOD_PUTAWAY_HOLD"
-            billnolist = comutils.getOccpyBySku(skuCode,oldSkuCode,whCode,bizType)
-            print(billnolist)
+        if billno.startswith("PAP") or billno.startswith("R2") or billno.startswith("PAT"):
+            bizType = ["GOOD_PUTAWAY_HOLD","BAD_PUTAWAY_HOLD"]
+            billnolist = comutils.getOccpyBySku(skuCode,oldSkuCode,platform,store,whCode,bizType)
+            # print(billnolist)
             billexist = False
             for bill in billnolist:
                 if "billNo" in bill and bill["billNo"] == req_exam["originBillNo"]:
@@ -202,6 +257,7 @@ class PurchaseputawayClass:
                 req_exam["operationTypeEnum"] = "NULL"
                 req_exam["skuList"] = self.execute_putaway_pur_with_no_occpy(skulist)
             else:
+                print("billexist")
                 return req_exam
         return req_exam
 
@@ -228,16 +284,20 @@ class CommonClass:
 
 
     def getActionByType(self,billtype):
-        print(billtype)
+        # print(billtype)
         if billtype == "215":
             tmp = OccpyFbaRClass()
             return tmp
-        elif billtype == "212" or billtype == "216":
+        elif billtype == "212" or billtype == "216" or billtype == "220":
             return PurchaseputawayClass()
         elif billtype == "219":
             return OccpyRmaClass()
         elif billtype == "404":
             return OccpyQcZHClass()
+        elif billtype == "311":
+            return OccpyWmsClass()
+        elif billtype == "305":
+            return OccpySalesOrderClass()
         else:
             return CommonClass()
 
@@ -251,5 +311,5 @@ class CommonClass:
 
 
 wmsOccpy = CommonClass()
-result = excuteabc.excute_error_log(filename, wmsOccpy,0, True)
+result = excuteabc.excute_error_log(filename, wmsOccpy,0, True,0)
 print(result)

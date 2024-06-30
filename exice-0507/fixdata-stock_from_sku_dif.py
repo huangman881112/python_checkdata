@@ -194,6 +194,25 @@ class otherInboundClass:
             sku["holdQty"] = 0
         return skuList
 
+    def execute_uk_sku(self, skuList):
+        skulistnew = []
+
+        for sku in skuList:
+
+            qty = sku["totalQty"]*-1
+            sku["useQty"] = qty
+            sku["totalQty"] = qty
+            sku["holdQty"] = 0
+            sku_q = comutils.init_data(sku,None,"json")
+            sku_w = comutils.init_data(sku,None,"json")
+            sku_w["site"] = "EU"
+            sku_w["totalQty"] = qty*-1
+            sku_w["useQty"] = qty*-1
+
+            skulistnew.append(sku_q)
+            skulistnew.append(sku_w)
+        return skulistnew
+
 
     def execute_req(self, req_exam):
         # print(req_exam["billNo"])
@@ -202,11 +221,11 @@ class otherInboundClass:
         # if org_bill not in bills:
         #     return None
         skulist = req_exam["skuList"]
-        req_exam["skuList"] = self.execute_sku(skulist)
+        req_exam["skuList"] = self.execute_uk_sku(skulist)
         # req_exam["operationTypeEnum"] = "NULL"
         return req_exam
 
 
 wmsOccpy = otherInboundClass()
-resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.req_exam, wmsOccpy, 2, False)
+resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.req_exam, wmsOccpy, 0, True)
 print(resut)

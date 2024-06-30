@@ -22,10 +22,13 @@
 
 "stock_log_url":"https://inv-web.yintaerp.com/api/inv/invWarehouseRatio/executeLogicStockLog",
 "stock_url":"https://inv-web.yintaerp.com/api/inv/invWarehouseRatio/executeLogicStock",
+"stock_list_url":"https://inv-web.yintaerp.com/api/inv/invWarehouseRatio/executeLogicStockList",
 "order_url":"https://www.yintaerp.com/yinta-business-web/frontend/goc/listByPage",
 "order_para_body":{"startSysCreateTime":"2024-04-08 00:00:00","endSysCreateTime":"","noType":"ERP单号","no":"","buyerInfoType":"买家ID","shippingAmazonWarehouseList":[],"skuList":[],"total":1,"pageSize":10,"pageNum":1,"tabType":1,"orderStatus":99},
 "inv_occpy_url":"https://inv-web.yintaerp.com/api/inv/invLogicOrderOccupy/pageByBizType",
 "inv_occpy_para_body":{"bizTypeList":[],"platform":"10001","oldSkuCode":"","skuCode":"","whCode":"","store":"10415","current":1,"size":10},
+"inv_occpy_by_order_url":"https://inv-web.yintaerp.com/api/inv/invLogicOrderOccupy/getOccupyByBizTypeAndBillNo",
+"inv_occpy_by_order_para_body":{"bizTypeList":[],"platform":"","oldSkuCode":"","skuCode":"","whCode":"","store":"","current":1,"size":10,"billNo":""},
 "inv_stock_query_url":"https://inv-web.yintaerp.com/api/inv/invLogicStock/queryInvLogicStockPage",
 "inv_stock_query_para_body":{"skuCode":"","warehouseCode":"","current":1,"size":10},
 

@@ -8,7 +8,7 @@ import commonUtil as comutils
 # 目标URL
 
 
-filename = "d:\\tmp\\tmp-occoupy.xlsx"
+filename = "d:\\tmp\\tmp-send_log.xlsx"
 tmpfile = "d:\\tmp\\tmp.txt"
 
 
@@ -28,7 +28,7 @@ class OccpySalesClass:
         return skulist
 
 
-    def excute_req(self, req_exam):
+    def execute_req(self, req_exam):
         # BillList = comutils.getBillList()
         # if req_exam["originBillNo"] not in BillList:
         #     req_exam=None
@@ -75,7 +75,7 @@ class OccpyWmsClass:
         #     sku["totalQty"] = qty * -1
         return skuList
 
-    def excute_req(self, req_exam):
+    def execute_req(self, req_exam):
         # BillList = comutils.getBillList()
         # if req_exam["originBillNo"] not in BillList:
         #     req_exam=None
@@ -127,7 +127,7 @@ class nullBillClass:
             sku["holdQty"] = 0
         return skuList
 
-    def excute_req(self, req_exam):
+    def execute_req(self, req_exam):
         now_date = datetime.now()
         billNo = now_date.strftime("%y%m%d") + "_inv_fix_occpy"
         req_exam["originBillNo"] = billNo
@@ -161,7 +161,7 @@ class HeadTransClass:
             sku["totalQty"] = qty * -1
         return skuList
 
-    def excute_req(self, req_exam):
+    def execute_req(self, req_exam):
         billNo = req_exam["billNo"]
         req_exam["originBillNo"] = billNo
         skuList = req_exam["skuList"]
@@ -182,7 +182,7 @@ class PurchaseTransitClass:
             sku["inTransitQty"] = qty * -1
         return skuList
 
-    def excute_req(self, req_exam):
+    def execute_req(self, req_exam):
         billNo = req_exam["billNo"]
         req_exam["originBillNo"] = billNo
         skuList = req_exam["skuList"]
@@ -204,7 +204,7 @@ class PuchaseReceiveTransitClass:
             sku["inTransitQty"] = qty * -1
         return skuList
 
-    def excute_req(self, req_exam):
+    def execute_req(self, req_exam):
         billNo = req_exam["billNo"]
         req_exam["originBillNo"] = billNo
         req_exam["operationTypeEnum"] = "PUR_RECEIVE_IN_TRANSIT"
@@ -214,6 +214,24 @@ class PuchaseReceiveTransitClass:
         return req_exam
 
 
-wmsOccpy =OccpyWmsClass()
-result = excuteabc.excute_occpy(filename, wmsOccpy.req_exam, wmsOccpy, 0, False)
+class CommonClass:
+
+    req_exam = None
+
+    def __init__(self):
+        super().__init__()
+
+    def getActionByType(self, billtype):
+        return CommonClass()
+
+    def execute_req(self, req_exam):
+        for req in req_exam:
+            skuList = req["skuList"]
+            for sku in skuList:
+                sku["site"] = ""
+
+        return req_exam
+
+wmsOccpy =CommonClass()
+result = excuteabc.execute_send_log(filename, wmsOccpy.req_exam, wmsOccpy, 0, True)
 print(result)

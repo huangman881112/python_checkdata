@@ -62,7 +62,7 @@ warehouse_codes = """{"01": "上海集散仓", "2": "头程海运虚拟仓", "3"
 "120": "谷仓德国1号仓不良品仓","121": "FBA-27-UK","122": "FBA-27-EU","123": "谷仓德国7号仓良品仓","124": "谷仓德国7号仓不良品仓"}"""
 
 warehouse_codes = json.loads(warehouse_codes)
-filename = "d:\\tmp\\sku_dif\\执行结果0624-实物vs逻辑库存.xlsx"
+filename = "d:\\tmp\\sku_dif\\执行结果0628-2_实物vs逻辑.xlsx"
 tmpfile = "d:\\tmp\\tmp.txt"
 
 # content = ''
@@ -106,7 +106,7 @@ def convert_to_csv(filename,type,warehouse_code):
             sku_dif = logic_qty - ordes_qty
             sheet.cell(i, len(row) + 1, str_list[0])
             sheet.cell(i, len(row) + 2, str_list[1])
-            if warehouse_code != str_list[2]:
+            if warehouse_code is not None and warehouse_code != str_list[2]:
                 continue
             if str_list[2] in warehouse_codes:
                 sheet.cell(i, len(row) + 3, warehouse_codes[str_list[2]])
@@ -144,7 +144,9 @@ def convert_to_csv(filename,type,warehouse_code):
         #     print(f"请求失败，状态码：{response.status_code}")
     f_tm = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
     print(i)
+    if warehouse_code is None:
+        warehouse_code = "all"
     workbook.save(f_tm +'_'+warehouse_code+ '_skudif.xlsx')
 
 
-convert_to_csv(filename,"实物","61")
+convert_to_csv(filename,"实物",None)

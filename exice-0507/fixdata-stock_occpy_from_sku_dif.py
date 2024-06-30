@@ -91,7 +91,7 @@ FTPLRG-0032FTPLRG-0032110
 '''
 
 
-filename = "d:\\tmp\\occpy_dif\\sku_dif.xlsx"
+filename = "D:/问题/sku-dif/EUUK库存拆分-1.xlsx"
 
 
 # content = ''
@@ -103,41 +103,48 @@ filename = "d:\\tmp\\occpy_dif\\sku_dif.xlsx"
 #     print(content)
 
 # df = pd.read_excel(filename)
-i = 0
+i = 2
 # 加载现有的Excel文件
 workbook = load_workbook(filename)
 billNo = ''
 # 选择工作表
 sheet = workbook.active
-for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, values_only=True):
+for row in sheet.iter_rows(min_row=4, max_row=sheet.max_row, values_only=True):
     if row[0] is None:
         break
+    warehouseCode = row[1]
     skuCode = row[2]
-    oldSkuCode = row[3]
+    # oldSkuCode = row[3]
+    storeName = row[5]
     platform = row[4]
-    store = row[5]
-    warehouseCode = row[6]
-    dif_qty = row[7]
+
+    all_qty = row[6]
     gentime = datetime.now().strftime('%Y%m%d')
-    billNo = gentime+ '_'+commonUtil.geneare_str(4)+"_fix_dif_occpy"
+    billNo = gentime+ '_'+"_fix_dif_occpy"
     # if dif_qty > 0:
     #     continue
+    invQty=0
+    platform_code=""
+    store_code=""
+    print(skuCode,warehouseCode)
+    stocklist = commonUtil.getInvstockbySku(skuCode,warehouseCode)
+    stocklistN = []
+    print(stocklist)
+    for stock in stocklist:
+        if storeName in stock["storeName"]:
+            platform_code=stock["platform"]
+            store_code=stock["store"]
+            invQty+=stock["useQty"]
+            stocklistN.append(stock)
 
+    sheet.cell(row=i + 2, column=len(row) + 1, value=invQty)
+    sheet.cell(row=i + 2, column=len(row) + 2, value=len(stocklistN))
+    sheet.cell(row=i + 2, column=len(row) + 3, value=platform_code)
+    sheet.cell(row=i + 2, column=len(row) + 4, value=store_code)
     req_exam = init_data(req_param,None)
     skulist =req_exam["skuList"]
     req_exam["warehouseCode"]=warehouseCode
-    skustr = skuCode + oldSkuCode +  warehouseCode
-    # if skustr not in sku_str_list:
-    #     continue
 
-    sku_exam = skulist[0]
-    sku_exam["skuCode"] = skuCode
-    sku_exam["oldSkuCode"] = oldSkuCode
-    sku_exam["platform"] = platform
-    sku_exam["store"] = store
-    sku_exam["holdQty"] = dif_qty*-1
-    sku_exam["totalQty"] = dif_qty*-1
-    sku_exam["useQty"] = 0
 
 
     # print(type(update_time))
@@ -155,8 +162,8 @@ for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, values_only=True):
     print(req_exam)
     #发送POST请求
 
-    response = requests.post(url, json=req_exam, headers=headers)
-    print(response.text)
+    # response = requests.post(url, json=req_exam, headers=headers)
+    # print(response.text)
     # 检查响应状态码
     # if response.status_code == 200:
     #     print("请求成功")
@@ -170,4 +177,4 @@ for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, values_only=True):
     #     break
 f_tm = datetime.now().strftime('%Y-%m-%d_%H%M%S')
 print(i)
-# workbook.save(f_tm + '_' + billNo + '_fix_dif_stock.xlsx')
+workbook.save(f_tm + '_all_'  + '_fix_dif_stock.xlsx')

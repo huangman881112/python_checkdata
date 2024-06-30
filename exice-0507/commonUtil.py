@@ -86,6 +86,7 @@ DATA = "data"
 LIST = "list"
 RECORDS = "records"
 STOCK_URL = "stock_url"
+STOCK_LIST_URL="stock_list_url"
 STOCK_LOG_URL = "stock_log_url"
 
 HEAD_LIST_URL = "head_list_url"
@@ -129,6 +130,10 @@ INV_OCCPY_URL = "inv_occpy_url"
 INV_OCCPY_PARA_BODY = "inv_occpy_para_body"
 WAREHOUSECODE = "whCode"
 OLD_SKU_CODE = "oldSkuCode"
+
+INV_OCCPY_BY_ORDER_URL="inv_occpy_by_order_url"
+INV_OCCPY_BY_ORDER_PARA_BODY = "inv_occpy_by_order_para_body"
+
 
 INV_STOCK_QUERY_URL = "inv_stock_query_url"
 INV_STOCK_QUERY_PARA_BODY = "inv_stock_query_para_body"
@@ -231,7 +236,7 @@ def getInvstockbySku(skucode, whcode):
     # print(response.text)
     resultj = json.loads(response.text)
     if resultj["code"] == 200 and len(resultj["data"]["records"]) > 0:
-        return resultj["data"]["records"][0]
+        return resultj["data"]["records"]
     return resultj
 
 
@@ -239,21 +244,47 @@ def getInvstockbySku(skucode, whcode):
 
 
 
-def getOccpyBySku(skuCode,oldSkuCode, whcode,biztype):
+def getOccpyBySku(skuCode,oldSkuCode,platform,store, whcode,biztype):
     body = getApiList()[INV_OCCPY_PARA_BODY]
     body["skuCode"] = skuCode
     body["oldSkuCode"] = oldSkuCode
     body["whCode"] = whcode
+    if platform is not None or platform != "":
+        body["platform"] = platform
+    if store is not None or store != "":
+        body["store"] = store
+    resList = []
+    for biztype_unt in biztype:
+        bizTypeList = []
+        bizTypeList.append(biztype_unt)
+        body["bizTypeList"] = bizTypeList
+        print(body)
+        response = requests.post(getApiList()[INV_OCCPY_URL], json=body, headers=getHeaders())
+        # print(response.text)
+        resultj = json.loads(response.text)
+        if resultj["code"] == 200 and len(resultj["data"]["records"]) > 0:
+            resList.extend(resultj["data"]["records"])
+            # print(resList)
+    return resList
+
+
+
+def getOccpyByOrder(orderCode,skuCode,biztype=None):
+    body = getApiList()[INV_OCCPY_BY_ORDER_PARA_BODY]
+    body["billNo"] = orderCode
+    if skuCode is not None:
+        body["skucCode"] = skuCode
     bizTypeList = []
+    resList = []
     bizTypeList.append(biztype)
     body["bizTypeList"] = bizTypeList
-    response = requests.post(getApiList()[INV_OCCPY_URL], json=body, headers=getHeaders())
+    response = requests.post(getApiList()[INV_OCCPY_BY_ORDER_URL], json=body, headers=getHeaders())
     # print(response.text)
     resultj = json.loads(response.text)
     if resultj["code"] == 200 and len(resultj["data"]["records"]) > 0:
-        return resultj["data"]["records"]
-    return resultj
-
+        resList.extend(resultj["data"]["records"])
+        # print(resList)
+    return resList
 
 
 storelist = """

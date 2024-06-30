@@ -77,6 +77,15 @@ class OccpyWmsClass:
         return req_exam
 
 
-wmsOccpy = OccpyWmsClass()
-res = excuteabcLog.execute_stock_log(filename, comutils.OTHER_OUTBOUND, wmsOccpy, 0, False)
+class commonClass:
+    def __init__(self):
+        super().__init__()
+
+    def execute_log_req(self, req_exam):
+        req_exam["operationTypeEnum"] = "NULL"
+        return req_exam
+
+
+wmsOccpy = commonClass()
+res = excuteabcLog.execute_stock_log(filename, comutils.OTHER_OUTBOUND, wmsOccpy, 0, True)
 print(res)

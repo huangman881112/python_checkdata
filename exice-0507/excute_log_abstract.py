@@ -128,7 +128,6 @@ def excute_occpy(filename, head_trans_out, action: Action, m, flag):
             break
 
 
-
 def execute_stock_log(filename, head_trans_out, action: Action, m, flag):
     i = 0
     # 加载现有的Excel文件
@@ -149,17 +148,20 @@ def execute_stock_log(filename, head_trans_out, action: Action, m, flag):
         store = row[3]
         sku_exam["store"] = store
         now = datetime.now()
-        billNo = now.strftime("%Y%m%d")+"_inv_fixlog"
+        billNo = now.strftime("%Y%m%d") + "_inv_fixlog"
         # billNo = row[18]
         # origin_bill_no = row[17]
         # bill_time = row[15]
         warehouse_code = row[4]
-        qty = int(row[5])
+        site = str(row[5])
+        qty = int(row[6])
+        if site is not None and site != "":
+            sku_exam["site"] = site
         if qty > 0:
-            head_trans_out = comutils.OTHER_INBOUND
+            req_exam_str = comutils.OTHER_INBOUND
         else:
-            head_trans_out = comutils.OTHER_OUTBOUND
-        req_exam = comutils.init_data(head_trans_out, None)
+            req_exam_str = comutils.OTHER_OUTBOUND
+        req_exam = comutils.init_data(req_exam_str, None)
         req_exam["billNo"] = billNo
         req_exam["remark"] = billNo
         req_exam["originBillNo"] = billNo
@@ -176,7 +178,10 @@ def execute_stock_log(filename, head_trans_out, action: Action, m, flag):
                     sku[prop] = qty
                 else:
                     sku[prop] = sku_exam[prop]
-
+            if site == "None":
+                skuList.remove(sku)
+                sku = comutils.init_data(sku, "site", "json")
+                skuList.append(sku)
         # 发送POST请求
         req_exam = action.execute_log_req(req_exam)
         if flag == False:

@@ -14,7 +14,7 @@ import Action
 
 
 
-def excute_error_log(filename, action: Action, m, flag):
+def excute_error_log(filename, action: Action, m, flag,wait_time=0):
     workbook = load_workbook(filename)
     po_zip_list = {}
     # 选择工作表
@@ -54,6 +54,7 @@ def excute_error_log(filename, action: Action, m, flag):
                                      headers=comutils.getHeaders())
             print(response.text)
         i += 1
+        time.sleep(wait_time)
         if m > 0 and i >= m:
             break
     return i
@@ -239,12 +240,16 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
             sku_exam["site"] = site
         gentime = datetime.now().strftime('%Y%m%d')
         if billNo is None or billNo == '':
-            billNo = gentime + "_fix_dif_stock"
+            billNo = gentime + "_fix_dif_eu_stock"
+        if dif_qty == 0:
+            continue
         if req_exam_str is None:
             if dif_qty > 0:
                 req_str = comutils.OTHER_INBOUND
             else:
                 req_str = comutils.OTHER_OUTBOUND
+        else:
+            req_str = req_exam_str
         req_exam = comutils.init_data(req_str, None)
         req_exam["warehouseCode"] = warehouseCode
         req_exam["billNo"] = billNo
@@ -282,8 +287,30 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
             break
     return i
 
-
-
+def execute_send_log(filename, req_exam_str, action: Action, m, flag):
+    workbook = load_workbook(filename)
+    # 选择工作表
+    sheet = workbook.active
+    i=0;
+    for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, values_only=True):
+        if row[0] is None:
+            break
+        message_value = row[2]
+        req_exam = json.loads(message_value)
+        for data in req_exam:
+            data["remark"] = data["billNo"]
+        req_exam = action.execute_req(req_exam)
+        if flag == False:
+            req_exam = json.dumps(req_exam)
+            print(req_exam)
+        if flag == True and req_exam is not None:
+            response = requests.post(comutils.getApiList()[comutils.STOCK_LIST_URL], json=req_exam,
+                                     headers=comutils.getHeaders())
+            print(response.text)
+        i += 1
+        if m > 0 and i >= m:
+            break
+    return i
 
 def excute_sku(action: Action):
     action.handle_sku()
