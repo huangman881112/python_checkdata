@@ -36,6 +36,10 @@
 "inv_stock_para_body":{"skuCode":"FTBFSD-0147","warehouseCode":"112","current":1,"size":10},
 
 
+"inv_sale_delete_key":"https://inv-web.yintaerp.com/api/inv/invSalesStock/deteredisBykey",
+"inv_sale_delete_para_body":{"key":[]},
+
+
 "wms_storage_inv_url":"https://wms-web.yintaerp.com/wms-web/wh/storageInv/list",
 "wms_storage_inv_para_body":{"isInvQty":true,"oneCategory":"","twoCategory":"","threeCategory":"","storageLocation":"","skuCode":"","whCode":"","boxNumFlag":"","weightFlag":"","ouId":"","storageArea":"","companyIdList":[],"storageTypeList":[],"lastCategoryList":[],"platformCode":"","storeCode":"","current":1,"size":10,"sortMappings":{"column":"","sortFlag":""}}
 }

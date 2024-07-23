@@ -76,6 +76,6 @@ def getZpoRes(zpos, planNolist):
     # print(zpo_res_list_)
 
 # ZPO23121300310,ZPO24031900103
-billnos = cul.getAllbilllist("FTBFVT-4008",[0,1,4],[])
+billnos = cul.getAllbilllist("FTBFSD-0106",[0,1,4],[])
 print(billnos)
-getZpoRes("ZPO24031900103",billnos)
+getZpoRes("ZPO24040900075",billnos)

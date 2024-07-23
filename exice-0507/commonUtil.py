@@ -9,13 +9,36 @@ sales_order_url = 'https://inv-web.yintaerp.comyinta-business-web/frontend/goc/l
 
 
 def getToken():
-    token_str = ''
+    token_str = ""
     with open('token', 'r', encoding='utf-8') as file:
         # content = file.read()  # 一次性读取整个文件内容
         # 或者使用以下方式逐行读取
         for line in file:
             token_str += line
     return token_str
+
+
+def getTokenByUrl():
+    body = {"accountName": "YTWH147", "password": "Xm66666666666!"}
+    response = requests.post("https://www.yintaerp.com/sso-web/acc/doLogin", json=body)
+    response = json.loads(response.text)
+    token_str = response["data"]["access_token"]
+    print(token_str)
+    with open('token', 'w', encoding='utf-8') as file:
+        # content = file.read()  # 一次性读取整个文件内容
+        # 或者使用以下方式逐行读取
+        file.write(token_str)
+    file.close()
+
+
+getTokenByUrl()
+
+
+def deleteKeyRedis(keylist):
+    body = getApiList(INV_SALE_DELETE_PARA_BODY)
+    body["key"] = keylist;
+    response = requests.post(getApiList(INV_SALE_DELETE_KEY), json=body, headers=getHeaders())
+    return response.text
 
 
 def getHeaders():
@@ -29,7 +52,7 @@ def getHeaders():
     return headers
 
 
-def init_data(rma_exampl, ignored_data,type=None):
+def init_data(rma_exampl, ignored_data, type=None):
     result = {}
     if type is None or type == "str":
         rma_exampl = json.loads(rma_exampl)
@@ -86,7 +109,7 @@ DATA = "data"
 LIST = "list"
 RECORDS = "records"
 STOCK_URL = "stock_url"
-STOCK_LIST_URL="stock_list_url"
+STOCK_LIST_URL = "stock_list_url"
 STOCK_LOG_URL = "stock_log_url"
 
 HEAD_LIST_URL = "head_list_url"
@@ -131,9 +154,8 @@ INV_OCCPY_PARA_BODY = "inv_occpy_para_body"
 WAREHOUSECODE = "whCode"
 OLD_SKU_CODE = "oldSkuCode"
 
-INV_OCCPY_BY_ORDER_URL="inv_occpy_by_order_url"
+INV_OCCPY_BY_ORDER_URL = "inv_occpy_by_order_url"
 INV_OCCPY_BY_ORDER_PARA_BODY = "inv_occpy_by_order_para_body"
-
 
 INV_STOCK_QUERY_URL = "inv_stock_query_url"
 INV_STOCK_QUERY_PARA_BODY = "inv_stock_query_para_body"
@@ -141,6 +163,9 @@ INV_STOCK_QUERY_PARA_BODY = "inv_stock_query_para_body"
 INV_OCCPY_BIZTYPELIST = "bizTypeList"
 PUR_PRODUCE_IN_TRANSIT = "PUR_PRODUCE_IN_TRANSIT"
 PUR_IN_TRANSIT = "PUR_IN_TRANSIT"
+
+INV_SALE_DELETE_KEY = "inv_sale_delete_key"
+INV_SALE_DELETE_PARA_BODY = "inv_sale_delete_para_body"
 
 
 def getBillLists(url, body, startPage, pageSize, status, bill_list, skuCode):
@@ -166,7 +191,7 @@ def getBillLists(url, body, startPage, pageSize, status, bill_list, skuCode):
     startPage += 1
     while suplr_strt_res[DATA]["total"] > (startPage - 1) * pageSize:
         print(startPage)
-        return getBillLists(url, body, startPage, pageSize, status, bill_list)
+        return getBillLists(url, body, startPage, pageSize, status, bill_list, skuCode)
 
     return bill_list
 
@@ -224,14 +249,16 @@ def getWmsStoregeStock(skucCode, warehouseCode, type):
         res = getbilllistswithprop(url, body, 0, "invQty")
     else:
         res = getbilllistswithprop(url, body, [], None)
-    print(skucCode, "_", res)
+    print(skucCode, "_", json.dumps(res))
     return res
 
 
-def getInvstockbySku(skucode, whcode):
+def getInvstockbySku(skucode, whcode, oldskuCode=None):
     body = getApiList()[INV_STOCK_QUERY_PARA_BODY]
     body["skuCode"] = skucode
     body["warehouseCode"] = whcode
+    if oldskuCode != None:
+        body["oldSkuCode"] = oldskuCode
     response = requests.post(getApiList()[INV_STOCK_QUERY_URL], json=body, headers=getHeaders())
     # print(response.text)
     resultj = json.loads(response.text)
@@ -240,11 +267,7 @@ def getInvstockbySku(skucode, whcode):
     return resultj
 
 
-
-
-
-
-def getOccpyBySku(skuCode,oldSkuCode,platform,store, whcode,biztype):
+def getOccpyBySku(skuCode, oldSkuCode, platform, store, whcode, biztype):
     body = getApiList()[INV_OCCPY_PARA_BODY]
     body["skuCode"] = skuCode
     body["oldSkuCode"] = oldSkuCode
@@ -268,18 +291,37 @@ def getOccpyBySku(skuCode,oldSkuCode,platform,store, whcode,biztype):
     return resList
 
 
+def getsubDbNo(dbno):
+    body = {"ctvcode": "DB24070800288", "cdefine13": "", "ciwhcode": "", "cowhcode": "", "cinvcode": "", "oldSku": "",
+            "startdate": "", "enddate": "", "isover": "",
+            "isshipmentId": "", "shipmentId": "", "billtype": 2, "current": 1, "size": 10}
+    body["ctvcode"] = dbno
+    response = requests.post("https://wms-web.yintaerp.com/wms-web/wh/transfer/list", json=body, headers=getHeaders())
+    # print(response.text)
+    res = json.loads(response.text)
+    id = res["data"]["records"][0]["id"]
+    detailBoyd = {"id": "548852", "transtype": 2}
+    detailBoyd["id"] = id
+    response = requests.post("https://wms-web.yintaerp.com/wms-web/wh/transfer/detail/list", json=detailBoyd,
+                             headers=getHeaders())
+    # print(response.text)
+    res_sub = json.loads(response.text)
+    sub_no = res_sub["data"][0]["cTVCode"]
+    return sub_no
 
-def getOccpyByOrder(orderCode,skuCode,biztype=None):
+
+def getOccpyByOrder(orderCode, skuCode, biztype=None):
     body = getApiList()[INV_OCCPY_BY_ORDER_PARA_BODY]
     body["billNo"] = orderCode
     if skuCode is not None:
         body["skucCode"] = skuCode
     bizTypeList = []
     resList = []
-    bizTypeList.append(biztype)
+    if(biztype!=None):
+        bizTypeList.append(biztype)
     body["bizTypeList"] = bizTypeList
     response = requests.post(getApiList()[INV_OCCPY_BY_ORDER_URL], json=body, headers=getHeaders())
-    # print(response.text)
+    print(response.text)
     resultj = json.loads(response.text)
     if resultj["code"] == 200 and len(resultj["data"]["records"]) > 0:
         resList.extend(resultj["data"]["records"])
@@ -384,6 +426,26 @@ def getBillList():
     return bill_list
 
 
+
+def getTransBillListFromFile():
+    bill_list = ''
+    with open('trans_bill_list', 'r', encoding='utf-8') as file:
+        # content = file.read()  # 一次性读取整个文件内容
+        # 或者使用以下方式逐行读取
+        for line in file:
+            bill_list += line
+        # print(bill_list)
+    return bill_list
+
+
+
+
+
+
+
+
+
+
 def getwarehouse_list():
     warehouseList = json.loads(warehouse_codes)
     return warehouseList
@@ -410,8 +472,6 @@ def getOperType():
 
 FILE_PROFIX = "D:/file/python_result/"
 
-
-
 SKU_EXAM_STR = """
 {
 			"badHoldQty": 0,
@@ -428,7 +488,6 @@ SKU_EXAM_STR = """
 			"useQty": 1
 		}
 """
-
 
 OTHER_INBOUND = """
 {
@@ -514,6 +573,65 @@ HEAD_TRANS_SHIPOUT = """
 	"whType": "oneself",
 	"billNo": "2404H-G53-CA03",
 	"billStatusEnum": "FINISH"
+}
+"""
+
+HEAD_TRANS_OUT = """
+{
+	"operationTypeEnum": "HOLD",
+	"skuList": [
+		{
+			"freezeQty": 0,
+			"holdQty": -50,
+			"useQty": 0,
+			"totalQty": -50,
+			"inTransitQty": 0,
+			"store": "10415",
+			"platform": "10001",
+			"site":"US",
+			"badQty": 0,
+			"oldSkuCode": "FTHKAM-1002",
+			"skuCode": "FTHKAM-1002",
+			"badHoldQty": 0
+		}
+	],
+	"originBillNo": "2406H-S12-WUK",
+	"warehouseName": "佛山集散仓",
+	"cooperator": "赢他",
+	"billTypeEnum": "WMS_STRAIGHT_WAREHOUSRE",
+	"warehouseCode": "58",
+	"billTime": 1714992127000,
+	"whType": "oneself",
+	"billNo": "2404H-G53-CA03",
+	"billStatusEnum": "FINISH"
+}
+"""
+
+HEAD_TRANS_INBOUND = """
+{
+			"billNo": "PAP20240626348",
+			"billStatusEnum": "FINISH",
+			"billTime": "2024-07-20T16:26:14.155",
+			"billTypeEnum": "SELF_BUILD_INBOUND",
+			"operationTypeEnum": "HEAD_IN_TRANSIT_AND_PUTAWAY",
+			"originBillNo": "2406H-N12-CA02",
+			"repairOpt": false,
+			"skuList": [
+				{
+					"badHoldQty": 0,
+					"badQty": 0,
+					"freezeQty": 0,
+					"holdQty": 100,
+					"inTransitQty": -100,
+					"oldSkuCode": "FTPLDB-6007",
+					"platform": "10001",
+					"skuCode": "FTPLDB-6007",
+					"store": "10415",
+					"totalQty": 100,
+					"useQty": 0
+				}
+			],
+			"warehouseCode": "110"
 }
 """
 

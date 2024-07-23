@@ -26,11 +26,13 @@ def excute_error_log(filename, action: Action, m, flag,wait_time=0):
         id =row[0]
         billType = row[1]
         new_value = row[14]
+        skuCode = row[4]
+        print(new_value)
         load_value = json.loads(new_value)
         load_value["req"]["remark"] = load_value["req"]["billNo"]
         # print(load_value["req"]["billNo"])
         billno = load_value["req"]["billNo"]
-        sheet.cell(i + 2, len(row) + 1, load_value["req"]["originBillNo"])
+        # sheet.cell(i + 2, len(row) + 1, load_value["req"]["originBillNo"])
         tm = load_value["req"]["billTime"]
         tm = time.localtime(tm / 1000)
         tm = time.strftime('%Y-%m-%dT%H:%M:%S', tm)
@@ -45,7 +47,7 @@ def excute_error_log(filename, action: Action, m, flag,wait_time=0):
         errorLogIdList.append(id)
         load_value["errorLogIdList"] = errorLogIdList
         load_value["repairOpt"] = True
-        load_value = action_new.excute_req(load_value)
+        load_value = action_new.excute_req(load_value,skuCode)
         if flag == False:
             load_value = json.dumps(load_value)
             print(load_value)
@@ -76,26 +78,27 @@ def excute_occpy(filename, req_exam_str, action: Action, m, flag):
         sku_exam = {}
         id = row[0]
         biz_type = row[1]
-        skuCode = row[9]
-        oldSkuCode = row[10]
-        platform = row[7]
-        store = row[8]
-        site = row[11]
+        skuCode = row[10]
+        oldSkuCode = row[11]
+        platform = row[8]
+        store = row[9]
+        site = row[18]
         sku_exam["skuCode"] = skuCode
         sku_exam["oldSkuCode"] = oldSkuCode
         sku_exam["platform"] = platform
         sku_exam["store"] = store
-        if site is not None and site != "":
-            sku_exam["site"] = site
-        if row[18] != "":
-            billNo = row[18]
-            origin_bill_no = row[17]
+        sku_exam["site"] = site
+        if row[19] != "":
+            billNo = row[20]
+            origin_bill_no = row[19]
         else:
-            billNo = row[3]
-            origin_bill_no = row[3]
-        bill_time = row[15]
-        warehouse_code = row[6]
-        qty = int(row[11])
+            billNo = row[4]
+            origin_bill_no = row[4]
+        bill_time = row[16]
+        warehouse_code = row[7]
+        qty = int(row[12])
+        if row[21]!=None:
+            qty= int(row[21])
         update_time = bill_time
         if req_exam_str is None:
             req_exam_str = comutils.OTHER_OUTBOUND
@@ -121,7 +124,7 @@ def excute_occpy(filename, req_exam_str, action: Action, m, flag):
                     sku[prop] = qty
                 else:
                     sku[prop] = sku_exam[prop]
-            if site == "None":
+            if site is None:
                 skuList.remove(sku)
                 sku = comutils.init_data(sku, "site", "json")
                 skuList.append(sku)
@@ -227,9 +230,9 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
         site = str(row[5])
         warehouseName = comutils.getwarehouse_list()[warehouseCode]
         # print(warehouseName)
-        if warehouseName.startswith("FBA") or warehouseName.startswith("CG") or warehouseName.startswith("WFS"):
-            continue
-        dif_qty = int(row[6])*-1
+        # if warehouseName.startswith("FBA") or warehouseName.startswith("CG") or warehouseName.startswith("WFS"):
+        #     continue
+        dif_qty = int(row[6])
         if len(row) >7:
             billNo = row[7]
         sku_exam["skuCode"] = skuCode
@@ -240,7 +243,7 @@ def execute_stock_with_unit(filename, req_exam_str, action: Action, m, flag):
             sku_exam["site"] = site
         gentime = datetime.now().strftime('%Y%m%d')
         if billNo is None or billNo == '':
-            billNo = gentime + "_fix_dif_eu_stock"
+            billNo = gentime + "_fix_dif_site_stock"
         if dif_qty == 0:
             continue
         if req_exam_str is None:

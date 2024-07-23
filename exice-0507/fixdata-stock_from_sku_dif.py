@@ -52,6 +52,9 @@ filename = "d:\\tmp\\tmp-sku_unit_stock.xlsx"
 
 
 class OccpyWmsClass:
+
+    req_exam = None
+
     def __init__(self):
         super().__init__()
 
@@ -91,7 +94,7 @@ class OccpyWmsClass:
         # if org_bill not in bills:
         #     return None
         skulist = req_exam["skuList"]
-        req_exam["skuList"] = self.execute_sku(skulist)
+        req_exam["skuList"] = self.execute_sku_total(skulist)
         req_exam["operationTypeEnum"]="NULL"
         return req_exam
 
@@ -127,6 +130,35 @@ class BadQtyClass:
 class headTransClass:
 
     req_exam = comutils.HEAD_SHIPMENT
+
+    def __init__(self):
+        super().__init__()
+
+
+    def execute_sku(self, skuList):
+        for sku in skuList:
+            qty = sku["holdQty"]
+            sku["badQty"] = qty
+            sku["totalQty"] = qty
+            sku["holdQty"] = 0
+        return skuList
+
+
+    def execute_req(self, req_exam):
+        # print(req_exam["billNo"])
+        # org_bill = req_exam["billNo"]
+        # bills = comutils.getBillList()
+        # if org_bill not in bills:
+        #     return None
+        skulist = req_exam["skuList"]
+        req_exam["skuList"] = self.execute_sku(skulist)
+        # req_exam["operationTypeEnum"] = "NULL"
+        return req_exam
+
+
+class wmsHeadTransClass:
+
+    req_exam = comutils.HEAD_TRANS_OUT
 
     def __init__(self):
         super().__init__()
@@ -194,6 +226,20 @@ class otherInboundClass:
             sku["holdQty"] = 0
         return skuList
 
+    def execute_sku_totalQty(self, skuList):
+        for sku in skuList:
+            qty = sku["totalQty"]
+            sku["useQty"] = qty
+            sku["totalQty"] = qty
+            sku["holdQty"] = 0
+        return skuList
+
+    #集散仓库存站点初始化规则(上海集散仓/佛山集散仓)
+    #1.SKU尾缀“-E”"-DS" 站点<EU>
+    #2.SKU尾缀“-UK”站点<UK>
+    #3.没有以上3种尾缀的站点<US>
+    #
+    #
     def execute_uk_sku(self, skuList):
         skulistnew = []
 
@@ -205,9 +251,15 @@ class otherInboundClass:
             sku["holdQty"] = 0
             sku_q = comutils.init_data(sku,None,"json")
             sku_w = comutils.init_data(sku,None,"json")
-            sku_w["site"] = "EU"
-            sku_w["totalQty"] = qty*-1
+            if sku["skuCode"].endswith("-E") or sku["skuCode"].endswith("-DS"):
+                sku_w["site"] = "EU"
+            elif sku["skuCode"].endswith("-UK"):
+                sku_w["site"] = "UK"
+            else:
+                sku_w["site"] = "US"
+            sku_w["badQty"] = qty
             sku_w["useQty"] = qty*-1
+            sku_w["totalQty"] = 0
 
             skulistnew.append(sku_q)
             skulistnew.append(sku_w)
@@ -222,10 +274,10 @@ class otherInboundClass:
         #     return None
         skulist = req_exam["skuList"]
         req_exam["skuList"] = self.execute_uk_sku(skulist)
-        # req_exam["operationTypeEnum"] = "NULL"
+        req_exam["operationTypeEnum"] = "NULL"
         return req_exam
 
 
-wmsOccpy = otherInboundClass()
-resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.req_exam, wmsOccpy, 0, True)
+wmsOccpy = wmsHeadTransClass()
+resut = excuteabstract.execute_stock_with_unit(filename,wmsOccpy.req_exam, wmsOccpy, 0, False)
 print(resut)

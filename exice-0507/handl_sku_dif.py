@@ -62,7 +62,7 @@ warehouse_codes = """{"01": "上海集散仓", "2": "头程海运虚拟仓", "3"
 "120": "谷仓德国1号仓不良品仓","121": "FBA-27-UK","122": "FBA-27-EU","123": "谷仓德国7号仓良品仓","124": "谷仓德国7号仓不良品仓"}"""
 
 warehouse_codes = json.loads(warehouse_codes)
-filename = "d:\\tmp\\sku_dif\\执行结果0628-2_实物vs逻辑.xlsx"
+filename = "d:\\tmp\\sku_dif\\执行结果0712-sku_dif_平台.xlsx"
 tmpfile = "d:\\tmp\\tmp.txt"
 
 # content = ''
@@ -149,4 +149,4 @@ def convert_to_csv(filename,type,warehouse_code):
     workbook.save(f_tm +'_'+warehouse_code+ '_skudif.xlsx')
 
 
-convert_to_csv(filename,"实物",None)
+convert_to_csv(filename,"PINGTAI",None)
